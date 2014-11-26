@@ -10,7 +10,8 @@ private:
 	cv::Vector<double> coin_radii;
 	cv::Vector<int> coin_classes;
 
-	void preprocess(cv::Mat image, cv::Mat &result);
+	void preprocess(cv::Mat image, cv::Mat &output_image);
+	void find_circles(cv::Mat image, cv::Mat &output_image);
 
 public:
 	CoinDetector();
