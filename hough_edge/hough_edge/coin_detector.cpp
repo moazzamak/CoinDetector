@@ -8,7 +8,6 @@
 void CoinDetector::preprocess(cv::Mat image, cv::Mat &result){
 	//Initialize temporary variables
 	double min, max;
-	cv::Mat result;
 
 	//Convert to grayscale
 	cv::cvtColor(image, result, CV_RGB2GRAY);
