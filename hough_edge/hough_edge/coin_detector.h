@@ -10,13 +10,11 @@ private:
 	cv::Vector<double> coin_radii;
 	cv::Vector<int> coin_classes;
 
-	cv::Mat temp_image;
-
-	void preprocess(cv::Mat image);
+	void preprocess(cv::Mat image, cv::Mat &result);
 
 public:
 	CoinDetector();
-	int detect(cv::Mat image);
+	int detect(cv::Mat image, cv::Mat &result);
 	cv::Vector<cv::Point2d> getCoinPositions();
 	cv::Vector<double> getCoinRadii();
 	cv::Vector<int> getCoinClass();

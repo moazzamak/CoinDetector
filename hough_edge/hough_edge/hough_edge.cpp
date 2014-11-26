@@ -13,24 +13,23 @@ int main() {
 	cv::Mat frame, temp_frame;
 	double min, max;
 	
+	char filename[] = "test_data/test_1.jpg";
 	//Loading resources
-	frame = cv::imread("test_1.jpg");
+	frame = cv::imread(filename);
 
-	if(frame.empty())
+	if(frame.empty()){
+		cout << "Error: Could not find file " << filename << endl;
 		return -1;
+	}
 
 	CoinDetector oCoin;
-	
-	oCoin.detect(frame);
 
 	//Initializing environment
 	cvNamedWindow("Edges", 1);
 	
+
 	//Processing
-	//Convert to grayscale
-	cv::cvtColor(frame, temp_frame, CV_RGB2GRAY);
-	cv::minMaxIdx(temp_frame, &min, &max);
-	cv::adaptiveThreshold(temp_frame, temp_frame, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 11, 1);
+	oCoin.detect(frame, temp_frame);
 
 	//Output
 	cv::imshow("Edges", temp_frame);
