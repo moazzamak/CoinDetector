@@ -106,7 +106,43 @@ int CoinDetector::detect(cv::Mat image, cv::Mat &output_image){
 	
 	CoinDetector::isolate_coins(image, coin_images);
 	output_image = coin_images[0];
+
+	CoinDetector::draw_bounds(image, output_image);
+
 	return 1;
+}
+
+void CoinDetector::draw_bounds(cv::Mat image, cv::Mat output_image){
+	image.copyTo(output_image);
+
+	float ratio = 1;
+	
+	for (int i = 0; i < coin_positions.size(); i++) {
+		int x = coin_positions[i][0]-coin_positions[i][2]*ratio;
+		int y = coin_positions[i][1]-coin_positions[i][2]*ratio;
+
+		//Make sure ROI never goes outside image boundaries
+		int w_max = (x > 0) ? coin_positions[i][2]*ratio : coin_positions[i][0];
+		w_max = (coin_positions[i][0]+coin_positions[i][2]*ratio < image.cols) ? w_max : image.cols - coin_positions[i][0];
+
+		int h_max = (y > 0) ? coin_positions[i][2]*ratio : coin_positions[i][1];
+		h_max = (coin_positions[i][1]+coin_positions[i][2]*ratio < image.rows) ? h_max : image.rows - coin_positions[i][1];
+
+		int width = 2*w_max;
+		int height = 2*h_max;
+
+		cv::rectangle(output_image, cv::Rect(x, y, width, height), cv::Scalar(0, 255, 0), 3);
+	}
+
+	if(debug) {
+		//Initializing environment
+		cvNamedWindow("Coins", 1);
+
+		//Output
+		cv::imshow("Coins", output_image);
+		cv::waitKey(0);
+		cvDestroyAllWindows();
+	}
 }
 
 cv::vector<cv::Mat> CoinDetector::getCoins(){

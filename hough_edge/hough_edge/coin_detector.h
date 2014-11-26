@@ -15,6 +15,7 @@ private:
 	void preprocess(cv::Mat image, cv::Mat &output_image);
 	void find_circles(cv::Mat image, cv::Mat &output_image);
 	void isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin_images);
+	void draw_bounds(cv::Mat image, cv::Mat output_image);
 public:
 	CoinDetector();
 	int detect(cv::Mat image, cv::Mat &result);
