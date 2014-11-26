@@ -30,10 +30,11 @@ int main() {
 
 	//Processing
 	oCoin.detect(frame, temp_frame);
-
-	//Output
-	cv::imshow("Edges", temp_frame);
-	cv::waitKey(0);
-
+	cv::vector<cv::Mat> coins = oCoin.getCoins();
+	for (int i = 0; i < coins.size(); i++){
+		//Output
+		cv::imshow("Edges", coins[i]);
+		cv::waitKey(0);
+	}
 	return 0;
 }

@@ -5,20 +5,22 @@
 
 class CoinDetector {
 private:
+	int debug;
 	//Result will be contained in these variables
-	cv::Vector<cv::Point2d> coin_positions;
-	cv::Vector<double> coin_radii;
-	cv::Vector<int> coin_classes;
+	cv::vector<cv::Vec3f> coin_positions;
+	cv::vector<int> coin_classes;
+	cv::vector<cv::Mat> coin_images;
 
 	void preprocess(cv::Mat image, cv::Mat &output_image);
 	void find_circles(cv::Mat image, cv::Mat &output_image);
-
+	void isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin_images);
 public:
 	CoinDetector();
 	int detect(cv::Mat image, cv::Mat &result);
-	cv::Vector<cv::Point2d> getCoinPositions();
-	cv::Vector<double> getCoinRadii();
-	cv::Vector<int> getCoinClass();
+	cv::vector<cv::Mat> getCoins();
+	cv::vector<cv::Point2d> getCoinPositions();
+	cv::vector<double> getCoinRadii();
+	cv::vector<int> getCoinClass();
 };
 
 #endif
