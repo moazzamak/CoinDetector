@@ -9,6 +9,7 @@ private:
 	float scale_error_ratio;
 	//Result will be contained in these variables
 	cv::vector<cv::Vec3f> coin_positions;
+	cv::vector<cv::Vec3f> corrected_positions;
 	cv::vector<int> coin_classes;
 	cv::vector<cv::Mat> coin_images;
 
@@ -16,6 +17,7 @@ private:
 	void find_circles(cv::Mat image, cv::Mat &output_image);
 	void isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin_images);
 	void draw_bounds(cv::Mat image, cv::Mat output_image);
+	void correct_circles();
 public:
 	CoinDetector();
 	int detect(cv::Mat image, cv::Mat &result);

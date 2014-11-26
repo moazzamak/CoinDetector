@@ -1,7 +1,6 @@
 #include <opencv2/opencv.hpp>
 #include "coin_detector.h"
 
-
 //Private functions
 
 //Preprocessing image
@@ -16,14 +15,13 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	cv::minMaxIdx(output_image, &min, &max);
 	cv::GaussianBlur(output_image, output_image, cv::Size(3,3), 2, 2);
 	
+	cv::dilate(output_image, output_image, cv::KERNEL_GENERAL);
 	
-	////Canny works better in estimating edges
+	////Canny works better with estimating centres
 	//cv::Canny(output_image, output_image, 150, 350);
 
-	//Alternate to canny
+	//Alternate to canny, more robust
 	cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 15);
-
-	cv::dilate(output_image, output_image, cv::KERNEL_GENERAL);
 
 	if(debug){
 		cvNamedWindow("Preprocessed");
@@ -38,7 +36,7 @@ void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
 
 	output_image.create(image.size(), CV_8UC3);
 	
-	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 1.5, 50, 10, 130, 20, 130);
+	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 1.5, 20, 10, 130, 20, 150);
 
 	if(debug){
 		image.copyTo(output_image);
@@ -94,7 +92,7 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 //Default Constructor
 CoinDetector::CoinDetector(){
 	debug = 1;
-	scale_error_ratio = 1.2;
+	scale_error_ratio = 1.5;
 }
 
 //Running detector on an image
@@ -107,9 +105,41 @@ int CoinDetector::detect(cv::Mat image, cv::Mat &output_image){
 	CoinDetector::isolate_coins(image, coin_images);
 	output_image = coin_images[0];
 
+	////Do not use! Reduces result quality
+	//CoinDetector::correct_circles();
+
 	CoinDetector::draw_bounds(image, output_image);
 
 	return 1;
+}
+
+void CoinDetector::correct_circles(){
+	cv::vector<cv::Vec3f> pos;
+
+	for (int i = 0; i < coin_images.size(); i++){
+		cv::Mat temp = coin_images[i];
+		CoinDetector::preprocess(temp, temp);
+		cv::HoughCircles(temp, pos, CV_HOUGH_GRADIENT, 1.5, temp.rows/2, 220, 140, 20, 150);
+		corrected_positions.push_back(pos[0]);
+		
+		for (int i = 0; i < pos.size(); i++) {
+			cv::Point center( cvRound(pos[i][0]), cvRound(pos[i][1]) );
+			int radius = cvRound( pos[i][2] );
+		
+			cv::circle(temp, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
+			cv::circle(temp, center, radius, cv::Scalar(255, 255, 255), 3, 8, 0);
+		}
+
+		if(debug) {
+			//Initializing environment
+			cvNamedWindow("Fixed", 1);
+
+			//Output
+			cv::imshow("Fixed", temp);
+			cv::waitKey(0);
+			cvDestroyAllWindows();
+		}
+	}
 }
 
 void CoinDetector::draw_bounds(cv::Mat image, cv::Mat output_image){

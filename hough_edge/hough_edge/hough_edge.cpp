@@ -13,7 +13,7 @@ int main() {
 	cv::Mat frame, temp_frame;
 	double min, max;
 	
-	char filename[] = "test_data/test_1.jpg";
+	char filename[] = "test_data/test_95.jpg";
 	//Loading resources
 	frame = cv::imread(filename);
 
@@ -22,12 +22,15 @@ int main() {
 		return -1;
 	}
 
-	CoinDetector oCoin;
+	CoinDetector cd;
 	
 	//Processing
-	oCoin.detect(frame, temp_frame);
-	cv::vector<cv::Mat> coins = oCoin.getCoins();
+	cd.detect(frame, temp_frame);
+	cv::vector<cv::Mat> coins = cd.getCoins();
 	
+	CoinIdentifier ci;
+
+
 	cout << "Detected " << coins.size() << " coins." << endl;
 	return 0;
 }
