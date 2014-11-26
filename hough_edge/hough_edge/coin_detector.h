@@ -6,6 +6,7 @@
 class CoinDetector {
 private:
 	int debug;
+	float scale_error_ratio;
 	//Result will be contained in these variables
 	cv::vector<cv::Vec3f> coin_positions;
 	cv::vector<int> coin_classes;

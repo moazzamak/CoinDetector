@@ -23,18 +23,11 @@ int main() {
 	}
 
 	CoinDetector oCoin;
-
-	//Initializing environment
-	cvNamedWindow("Edges", 1);
 	
-
 	//Processing
 	oCoin.detect(frame, temp_frame);
 	cv::vector<cv::Mat> coins = oCoin.getCoins();
-	for (int i = 0; i < coins.size(); i++){
-		//Output
-		cv::imshow("Edges", coins[i]);
-		cv::waitKey(0);
-	}
+	
+	cout << "Detected " << coins.size() << " coins." << endl;
 	return 0;
 }

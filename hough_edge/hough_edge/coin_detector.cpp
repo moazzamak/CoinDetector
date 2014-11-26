@@ -17,13 +17,20 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	cv::GaussianBlur(output_image, output_image, cv::Size(3,3), 2, 2);
 	
 	
-	//Canny works better in estimating edges
-	cv::Canny(output_image, output_image, 150, 350);
+	////Canny works better in estimating edges
+	//cv::Canny(output_image, output_image, 150, 350);
 
-	////Alternate to canny
-	//cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 15);
+	//Alternate to canny
+	cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 15);
 
 	cv::dilate(output_image, output_image, cv::KERNEL_GENERAL);
+
+	if(debug){
+		cvNamedWindow("Preprocessed");
+		cv::imshow("Preprocessed", output_image);
+		cv::waitKey(0);
+		cvDestroyAllWindows();
+	}
 }
 
 //Finding circles inside image
@@ -43,13 +50,17 @@ void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
 			cv::circle(output_image, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
 			cv::circle(output_image, center, radius, cv::Scalar(255, 255, 255), 3, 8, 0);
 		}
-	}
 
+		cvNamedWindow("Circles");
+		cv::imshow("Circles", output_image);
+		cv::waitKey(0);
+		cvDestroyAllWindows();
+	}
 }
 
 void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin_images){
+	float ratio = scale_error_ratio;
 	for (int i = 0; i < coin_positions.size(); i++) {
-		float ratio = 1.3;
 		int x = coin_positions[i][0]-coin_positions[i][2]*ratio;
 		int y = coin_positions[i][1]-coin_positions[i][2]*ratio;
 
@@ -65,6 +76,16 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 
 		cv::Mat temp = image( cvRect(x , y,	width, height) );
 		output_coin_images.push_back(temp);
+
+		if(debug) {
+			//Initializing environment
+			cvNamedWindow("Isolated", 1);
+
+			//Output
+			cv::imshow("Isolated", temp);
+			cv::waitKey(0);
+			cvDestroyAllWindows();
+		}
 	}
 }
 
@@ -73,6 +94,7 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 //Default Constructor
 CoinDetector::CoinDetector(){
 	debug = 1;
+	scale_error_ratio = 1.2;
 }
 
 //Running detector on an image
