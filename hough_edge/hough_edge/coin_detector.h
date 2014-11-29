@@ -19,7 +19,7 @@ private:
 	void draw_bounds(cv::Mat image, cv::Mat output_image);
 	void correct_circles();
 public:
-	CoinDetector();
+	CoinDetector(int debug_mode = 1, float scale_error = 1.5);
 	int detect(cv::Mat image, cv::Mat &result);
 	cv::vector<cv::Mat> getCoins();
 	cv::vector<cv::Point2d> getCoinPositions();

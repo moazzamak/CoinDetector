@@ -36,7 +36,7 @@ void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
 
 	output_image.create(image.size(), CV_8UC3);
 	
-	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 1.5, 20, 10, 130, 20, 150);
+	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 1.5, 40, 200, 130, 20, 100);
 
 	if(debug){
 		image.copyTo(output_image);
@@ -90,9 +90,9 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 //Public functions
 
 //Default Constructor
-CoinDetector::CoinDetector(){
-	debug = 1;
-	scale_error_ratio = 1.5;
+CoinDetector::CoinDetector(int debug_mode, float scale_error){
+	debug = debug_mode;
+	scale_error_ratio = scale_error;
 }
 
 //Running detector on an image
@@ -105,7 +105,8 @@ int CoinDetector::detect(cv::Mat image, cv::Mat &output_image){
 	CoinDetector::isolate_coins(image, coin_images);
 	output_image = coin_images[0];
 
-	////Do not use! Reduces result quality
+	////TODO: implement this function so that it improves quality
+	////Testing: Do not use! Reduces result quality
 	//CoinDetector::correct_circles();
 
 	CoinDetector::draw_bounds(image, output_image);
