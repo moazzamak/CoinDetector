@@ -4,7 +4,6 @@
 
 #include "coin_detector.h"
 #include "coin_identifier.h"
-#include "image_processing.h"
 
 using namespace std;
 
@@ -15,7 +14,6 @@ int main() {
 	
 	//File and folder names
 	string filename = "test_data/test_1.jpg";
-	//string filename = "Data_set2/image_1.jpg";
 	string folder_name = "training_data";
 	string output_folder = "unwrapped";
 
@@ -31,16 +29,13 @@ int main() {
 
 	//Loading resources
 	frame = cv::imread(filename);
-	//cv::resize(frame, frame, cvSize(640, 480));
+
 	if(frame.empty()){
 		cout << "Error: Could not find file " << filename << endl;
 		return -1;
 	}
 
-	//image_processing im(frame);
-	//im.run();
-
-	CoinDetector cd(1);
+	CoinDetector cd(0);
 	
 	//Processing
 	cd.detect(frame, temp_frame);
@@ -63,10 +58,10 @@ int main() {
 
 		cv::Mat test_coin = cv::imread(qualified_coin_name);
 
-		//CoinIdentifier ci;
-		//ci.identify(test_coin, temp_coin);
+		CoinIdentifier ci;
+		ci.identify(test_coin, temp_coin);
 
-		//cv::imwrite(qualified_output_name, temp_coin);
+		cv::imwrite(qualified_output_name, temp_coin);
 	}
 
 	return 0;

@@ -15,7 +15,7 @@ private:
 
 	void preprocess(cv::Mat image, cv::Mat &output_image);
 	void find_circles(cv::Mat image, cv::Mat &output_image);
-	void isolate_coins(cv::Mat image, cv::Mat &output_image, cv::vector<cv::Mat> &output_coin_images);
+	void isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin_images);
 	void draw_bounds(cv::Mat image, cv::Mat output_image);
 	void correct_circles();
 public:
@@ -25,16 +25,6 @@ public:
 	cv::vector<cv::Point2d> getCoinPositions();
 	cv::vector<double> getCoinRadii();
 	cv::vector<int> getCoinClass();
-
-
-
-	// initial and max values of the parameters of interests.
-	const int cannyThresholdInitialValue = 200;
-	const int accumulatorThresholdInitialValue = 50;
-	const int maxAccumulatorThreshold = 200;
-	const int maxCannyThreshold = 255;
-
-
 };
 
 #endif
