@@ -9,6 +9,33 @@
 
 using namespace std;
 
+void CoinIdentifier::preprocess(cv::Mat image, cv::Mat &output_image){
+	//Initialize temporary variables
+	double min, max;
+
+	//Convert to grayscale
+	cv::cvtColor(image, output_image, CV_RGB2GRAY);
+	
+	//Threshold image to highlight edges
+	cv::minMaxIdx(output_image, &min, &max);
+	//cv::GaussianBlur(output_image, output_image, cv::Size(3,3), 2, 2);
+	
+	//cv::dilate(output_image, output_image, cv::KERNEL_GENERAL);
+	
+	////Canny works better with estimating centres
+	//cv::Canny(output_image, output_image, 150, 350);
+
+	//Alternate to canny, more robust
+	cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 7, 7);
+
+	if(debug){
+		cvNamedWindow("Preprocessed");
+		cv::imshow("Preprocessed", output_image);
+		cv::waitKey(0);
+		cvDestroyAllWindows();
+	}
+}
+
 void CoinIdentifier::unwrap_coin(cv::Mat image, cv::Mat &output_image){
 	cv::Vec2f center(image.cols/2, image.rows/2);
 
@@ -72,4 +99,5 @@ CoinIdentifier::CoinIdentifier(){
 
 void CoinIdentifier::identify(cv::Mat image, cv::Mat &output_image){
 	CoinIdentifier::unwrap_coin(image, output_image);
+	//CoinIdentifier::preprocess(output_image, output_image);
 }
