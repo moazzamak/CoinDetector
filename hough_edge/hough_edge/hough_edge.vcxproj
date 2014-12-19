@@ -146,10 +146,12 @@
     <ClCompile Include="coin_detector.cpp" />
     <ClCompile Include="coin_identifier.cpp" />
     <ClCompile Include="hough_edge.cpp" />
+    <ClCompile Include="image_stream.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="coin_detector.h" />
     <ClInclude Include="coin_identifier.h" />
+    <ClInclude Include="image_stream.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

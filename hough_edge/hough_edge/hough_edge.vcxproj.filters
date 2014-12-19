@@ -24,12 +24,18 @@
     <ClCompile Include="coin_identifier.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="image_stream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="coin_detector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="coin_identifier.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="image_stream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

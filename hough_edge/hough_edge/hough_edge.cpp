@@ -4,6 +4,7 @@
 
 #include "coin_detector.h"
 #include "coin_identifier.h"
+#include "image_stream.h"
 
 using namespace std;
 
@@ -12,6 +13,10 @@ int main() {
 
 	cv::Mat frame, temp_frame, temp_coin;
 	
+	//Initializing ImageStream class
+	//this handles images saved on file as an input stream
+	ImageStream is("test_data", "test_", ".jpg", 200);
+
 	//File and folder names
 	string filename = "test_data/test_1.jpg";
 	string folder_name = "training_data";
@@ -27,8 +32,9 @@ int main() {
 	filelist.push_back("euro_1-00_1.png");
 	filelist.push_back("euro_2-00_1.png");
 
-	//Loading resources
-	frame = cv::imread(filename);
+	////Loading resources
+	//frame = cv::imread(filename);
+	is >> frame;
 
 	if(frame.empty()){
 		cout << "Error: Could not find file " << filename << endl;
@@ -65,4 +71,7 @@ int main() {
 	}
 
 	return 0;
+}
+
+cv::Mat fetchFrame(){
 }
