@@ -8,9 +8,13 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	//Initialize temporary variables
 	double min, max;
 
-	//Convert to grayscale
-	cv::cvtColor(image, output_image, CV_RGB2GRAY);
-	
+	image.copyTo(output_image);
+
+	if(image.channels() > 1){
+		//Convert to grayscale
+		cv::cvtColor(output_image, output_image, CV_RGB2GRAY);
+	}
+
 	//Threshold image to highlight edges
 	cv::minMaxIdx(output_image, &min, &max);
 	cv::GaussianBlur(output_image, output_image, cv::Size(3,3), 2, 2);
