@@ -155,6 +155,7 @@
     <ClInclude Include="dirent.h" />
     <ClInclude Include="file_handler.h" />
     <ClInclude Include="image_stream.h" />
+    <ClInclude Include="shift.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

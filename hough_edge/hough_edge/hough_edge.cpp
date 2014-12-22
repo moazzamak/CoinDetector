@@ -22,27 +22,31 @@ int main() {
 	////Or alternately open webcam
 	//cv::VideoCapture cap(0);
 
+	//TODO: I'm putting this to 1.0f for now Dev you need to fix the circle localization
+	//so we can put the extra region back
+	CoinDetector cd(DEBUG, 1.0f);
 	CoinIdentifier ci(DEBUG);
+
 	ci.train();
 
 	////Loading resources
 	cap >> frame;
 
-	if(frame.empty()){
+	if(frame.empty()) {
 		cout << "Error: Could not find file " << cap.get_qualified_name() << endl;
 		return -1;
 	}
-
-	CoinDetector cd(DEBUG);
 	
-	//Processing
+	//Detecting coins in image
 	cd.detect(frame, temp_frame);
 	cv::vector<cv::Mat> coins = cd.getCoins();
-	cout << "Detected " << coins.size() << " coins." << endl;
+	cout << "Detected " << coins.size() << " coin candidates." << endl;
 	
+	//Identifying coins in image
+	ci.identify_coins(coins, frame, temp_frame);
 
 	return 0;
 }
 
-cv::Mat fetchFrame(){
+cv::Mat fetchFrame() {
 }

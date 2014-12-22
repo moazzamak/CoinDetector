@@ -6,7 +6,7 @@
 
 using namespace std;
 
-ImageStream::ImageStream(std::string sfolder_name, std::string sfile_pre, std::string sfile_extension, int nFrames){
+ImageStream::ImageStream(std::string sfolder_name, std::string sfile_pre, std::string sfile_extension, int nFrames) {
 	folder_name = sfolder_name;
 	file_pre = sfile_pre;
 	file_extension = sfile_extension;
@@ -15,11 +15,11 @@ ImageStream::ImageStream(std::string sfolder_name, std::string sfile_pre, std::s
 	counter = 0;
 }
 
-void ImageStream::operator>>(cv::Mat &image){
+void ImageStream::operator>>(cv::Mat &image) {
 	image = get_next_frame();
 }
 
-cv::Mat ImageStream::get_next_frame(){
+cv::Mat ImageStream::get_next_frame() {
 	counter = counter + 1;
 
 	if ( counter >= total_frames )
@@ -32,7 +32,7 @@ cv::Mat ImageStream::get_next_frame(){
 	return image;
 }
 
-std::string ImageStream::get_qualified_name(){
+std::string ImageStream::get_qualified_name() {
 	ostringstream ost;
 	ost << folder_name << "/" << file_pre << counter << file_extension;
 	

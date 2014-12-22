@@ -4,13 +4,13 @@
 //Private functions
 
 //Preprocessing image
-void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
+void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image) {
 	//Initialize temporary variables
 	double min, max;
 
 	image.copyTo(output_image);
 
-	if(image.channels() > 1){
+	if(image.channels() > 1) {
 		//Convert to grayscale
 		cv::cvtColor(output_image, output_image, CV_RGB2GRAY);
 	}
@@ -27,7 +27,7 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	//Alternate to canny, more robust
 	cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 15);
 
-	if(debug){
+	if(debug) {
 		cvNamedWindow("Preprocessed");
 		cv::imshow("Preprocessed", output_image);
 		cv::waitKey(0);
@@ -36,13 +36,13 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 }
 
 //Finding circles inside image
-void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
+void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image) {
 
 	output_image.create(image.size(), CV_8UC3);
 	
 	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 1.5, 40, 200, 130, 20, 100);
 
-	if(debug){
+	if(debug) {
 		image.copyTo(output_image);
 
 		for (int i = 0; i < coin_positions.size(); i++) {
@@ -60,7 +60,7 @@ void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
 	}
 }
 
-void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin_images){
+void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin_images) {
 	float ratio = scale_error_ratio;
 	for (int i = 0; i < coin_positions.size(); i++) {
 		int x = coin_positions[i][0]-coin_positions[i][2]*ratio;
@@ -94,13 +94,13 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 //Public functions
 
 //Default Constructor
-CoinDetector::CoinDetector(int debug_mode, float scale_error){
+CoinDetector::CoinDetector(int debug_mode, float scale_error) {
 	debug = debug_mode;
 	scale_error_ratio = scale_error;
 }
 
 //Running detector on an image
-int CoinDetector::detect(cv::Mat image, cv::Mat &output_image){
+int CoinDetector::detect(cv::Mat image, cv::Mat &output_image) {
 	
 	CoinDetector::preprocess(image, output_image);
 	
@@ -118,10 +118,10 @@ int CoinDetector::detect(cv::Mat image, cv::Mat &output_image){
 	return 1;
 }
 
-void CoinDetector::correct_circles(){
+void CoinDetector::correct_circles() {
 	cv::vector<cv::Vec3f> pos;
 
-	for (int i = 0; i < coin_images.size(); i++){
+	for (int i = 0; i < coin_images.size(); i++) {
 		cv::Mat temp = coin_images[i];
 		CoinDetector::preprocess(temp, temp);
 		cv::HoughCircles(temp, pos, CV_HOUGH_GRADIENT, 1.5, temp.rows/2, 220, 140, 20, 150);
@@ -147,7 +147,7 @@ void CoinDetector::correct_circles(){
 	}
 }
 
-void CoinDetector::draw_bounds(cv::Mat image, cv::Mat output_image){
+void CoinDetector::draw_bounds(cv::Mat image, cv::Mat output_image) {
 	image.copyTo(output_image);
 
 	float ratio = 1;
@@ -180,15 +180,15 @@ void CoinDetector::draw_bounds(cv::Mat image, cv::Mat output_image){
 	}
 }
 
-cv::vector<cv::Mat> CoinDetector::getCoins(){
+cv::vector<cv::Mat> CoinDetector::getCoins() {
 	return coin_images;
 }
 
 //Returns positions of coin in image
-cv::vector<cv::Point2d> getCoinPositions(){}
+cv::vector<cv::Point2d> getCoinPositions() {}
 
 //Returns radius of coins in image
-cv::vector<double> getCoinRadii(){}
+cv::vector<double> getCoinRadii() {}
 
 //Returns classification of coins in image
-cv::vector<int> getCoinClass(){}
+cv::vector<int> getCoinClass() {}
