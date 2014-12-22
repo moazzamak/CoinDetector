@@ -12,9 +12,12 @@ private:
 	cv::Vec3b interpolate(cv::Point2f pt, cv::Mat image);
 	
 public:
-	CoinIdentifier();
-
+	CoinIdentifier(int ndebug = 0);
 	void identify(cv::Mat image, cv::Mat &output_image);
+	void train();
+
+	//Might need to move this function to a separate file to handle String operations
+	std::string get_qualified_name(std::string folder_name, std::string file_name);
 };
 
 #endif

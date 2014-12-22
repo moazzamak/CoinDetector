@@ -25,7 +25,7 @@ cv::Mat ImageStream::get_next_frame(){
 	if ( counter >= total_frames )
 		counter = 1;
 	
-	string qualified_file_name = get_qualified_name();
+	std::string qualified_file_name = get_qualified_name();
 	cv::Mat image = cv::imread(qualified_file_name);
 
 

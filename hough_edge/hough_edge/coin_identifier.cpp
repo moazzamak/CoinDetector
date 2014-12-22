@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "coin_identifier.h"
-
+#include "file_handler.h"
 
 using namespace std;
 
@@ -73,8 +73,6 @@ void CoinIdentifier::unwrap_coin(cv::Mat image, cv::Mat &output_image){
 		}
 	}
 
-	cout <<  temp.rows << endl << temp.cols << endl;
-
 	temp.copyTo(output_image);
 
 	if(debug){
@@ -92,11 +90,50 @@ cv::Vec3b CoinIdentifier::interpolate(cv::Point2f pt, cv::Mat image){
 }
 
 //Public functions
-CoinIdentifier::CoinIdentifier(){
-	debug = 1;
+CoinIdentifier::CoinIdentifier(int ndebug){
+	debug = ndebug;
 }
 
 void CoinIdentifier::identify(cv::Mat image, cv::Mat &output_image){
 	CoinIdentifier::unwrap_coin(image, output_image);
 	CoinIdentifier::preprocess(output_image, output_image);
+}
+
+void CoinIdentifier::train(){
+	cout << "Extracting features from training data." << endl;
+
+	//File and folder names
+	std::string training_folder_name = "training_data";
+	std::string output_folder_name = "features";
+
+	//Fetch list of files from the training folder
+	FileHandler fh;
+	vector<std::string> filelist = fh.list_files(training_folder_name);
+
+	if( filelist.size() == 0 ){
+		cout << "Error: Training files could not be found!" << endl;
+		exit(-2);
+	}
+	
+	//Generate features from training data
+	for (int i = 0; i < filelist.size(); i++){	
+		std::string training_name = get_qualified_name(training_folder_name, filelist[i]);
+		cv::Mat image = cv::imread( training_name );
+		cv::Mat temp;
+
+		CoinIdentifier::unwrap_coin(image, temp);
+		CoinIdentifier::preprocess(temp, temp);
+		
+		std::string features_name = get_qualified_name(output_folder_name, filelist[i]);
+		cv::imwrite(features_name, temp);
+	}
+
+	cout << "Generating features complete." << endl;
+}
+
+std::string CoinIdentifier::get_qualified_name(std::string folder_name, std::string file_name){
+	ostringstream ost;
+	ost << folder_name << "/" << file_name;
+	
+	return ost.str();
 }
