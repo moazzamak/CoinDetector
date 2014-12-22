@@ -2,9 +2,11 @@
 #include <sstream>
 #include <opencv2\opencv.hpp>
 
+//Import headers
 #include "coin_detector.h"
 #include "coin_identifier.h"
 #include "image_stream.h"
+#include "file_handler.h"
 
 using namespace std;
 
@@ -15,26 +17,23 @@ int main() {
 	
 	//Initializing ImageStream class
 	//this handles images saved on file as an input stream
-	ImageStream is("test_data", "test_", ".jpg", 200);
+	ImageStream cap("test_data", "test_", ".jpg", 200);
+	////Or alternately open webcam
+	//cv::VideoCapture cap(0);
 
 	//File and folder names
 	string filename = "test_data/test_1.jpg";
-	string folder_name = "training_data";
+	std::string training_folder_name = "./training_data";
 	string output_folder = "unwrapped";
 
-	vector<string> filelist;
-	filelist.push_back("euro_0-01_1.png"); 
-	filelist.push_back("euro_0-02_0.png");
-	filelist.push_back("euro_0-05_1.png");
-	filelist.push_back("euro_0-10_1.png");
-	filelist.push_back("euro_0-20_1.png");
-	filelist.push_back("euro_0-50_1.png");
-	filelist.push_back("euro_1-00_1.png");
-	filelist.push_back("euro_2-00_1.png");
+	//Fetch list of files from the training folder
+	FileHandler fh;
+	vector<std::string> filelist = fh.list_files(training_folder_name);
+
+	cout << filelist.size() << endl;
 
 	////Loading resources
-	//frame = cv::imread(filename);
-	is >> frame;
+	cap >> frame;
 
 	if(frame.empty()){
 		cout << "Error: Could not find file " << filename << endl;
@@ -50,8 +49,10 @@ int main() {
 	
 	for (int i = 0; i < filelist.size(); i++){	
 		
-		ostringstream ost;
-		ost << folder_name << "/" << filelist[i];
+		cout << filelist[i] << endl;
+
+		/*ostringstream ost;
+		ost << training_folder_name << "/" << filelist[i];
 		string qualified_coin_name = ost.str();
 
 		ost.str("");
@@ -67,7 +68,7 @@ int main() {
 		CoinIdentifier ci;
 		ci.identify(test_coin, temp_coin);
 
-		cv::imwrite(qualified_output_name, temp_coin);
+		cv::imwrite(qualified_output_name, temp_coin);*/
 	}
 
 	return 0;
