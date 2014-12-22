@@ -23,7 +23,7 @@ int main() {
 
 	//File and folder names
 	string filename = "test_data/test_1.jpg";
-	std::string training_folder_name = "./training_data";
+	string training_folder_name = "./training_data";
 	string output_folder = "unwrapped";
 
 	//Fetch list of files from the training folder

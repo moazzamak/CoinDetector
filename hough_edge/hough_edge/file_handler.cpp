@@ -10,7 +10,7 @@ cv::vector<std::string> FileHandler::list_files(std::string directory){
     struct dirent *entry;
 	if( pDIR=opendir(directory.c_str()) ){
             while(entry = readdir(pDIR)){
-                    if( strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 ){
+				if( strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 ){
 						output.push_back(entry->d_name);
 					}
             }
