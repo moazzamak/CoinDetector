@@ -2,35 +2,33 @@
 #include "coin_detector.h"
 #include <sstream>
 using namespace cv;
+RNG rng(12345);
 //Private functions
 
 //Preprocessing image
 void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	//Initialize temporary variables
 	double min, max;
-	cv::Mat gaussian_op;
-	//cv::pyrMeanShiftFiltering(image, output_image, 10, 10, 1);
+
 	//Convert to grayscale
 	cv::cvtColor(image, output_image, CV_RGB2GRAY);
-	
+
 	//Threshold image to highlight edges
-	
-	cv::GaussianBlur(output_image, gaussian_op, cv::Size(3, 3), 2, 2);
-	//cv::addWeighted(gaussian_op, 1.5, output_image, -0.5, 0, output_image, -1);
-	cv::Laplacian(gaussian_op, output_image, CV_16S, 3, 1, 0, BORDER_DEFAULT);
-	convertScaleAbs(output_image,output_image);
-	//cv::dilate(output_image, output_image, cv::KERNEL_GENERAL);
-	//cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 3, 15);
-	////Canny works better with estimating centres
-	cv::Canny(output_image, output_image, 70, 210);
 	cv::minMaxIdx(output_image, &min, &max);
-	//cv::threshold(output_image, output_image, 50, max, cv::THRESH_BINARY);
-	//cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 3, 15);
-	//cv::threshold(output_image,output_image,);
+	cv::GaussianBlur(output_image, output_image, cv::Size(3, 3), 2, 2);
+	//cv::Laplacian(output_image, output_image, CV_16S, 3, 1, 0, BORDER_DEFAULT);
+	//convertScaleAbs(output_image,output_image);
+	cv::dilate(output_image, output_image, cv::KERNEL_GENERAL);
+
+	////Canny works better with estimating centres
+	//cv::Canny(output_image, output_image, 150, 350);
+
 	//Alternate to canny, more robust
-	
-	
-	if(debug){
+	cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 15);
+	//output_image.copyTo(isolated_coin_input);
+	output_image.copyTo(isolated_coin_input);
+	//isolated_coin_input = output_image.clone();
+	if (debug){
 		cvNamedWindow("Preprocessed");
 		cv::imshow("Preprocessed", output_image);
 		cv::waitKey(0);
@@ -38,79 +36,51 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	}
 }
 
+void CoinDetector::find_contours(cv::Mat image){
+	cv::Mat contourImage = image.clone();
+	std::vector<std::vector<cv::Point> > contours;
+	vector<Vec4i> hierarchy;
+	//std::cout << "in devvrat" << std::endl;
+	cv::findContours(contourImage, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	std::cout << "finding contours" << std::endl;
+	vector<vector<Point> > contours_poly(contours.size());
+	vector<Rect> boundRect(contours.size());
+	float max_area = 0.0;
+	int max_area_idx = 0;
+	for (int j = 0; j < contours.size(); j++) {
+		float area = contourArea(contours[j], false);
+		if (area > 300) {
+			drawContours(contourImage, contours, j, Scalar(0, 0, 255), 2, 8, hierarchy);
+		}
+		//approxPolyDP(Mat(contours[j]), contours_poly[j], 3, true);
+		//boundRect[j] = boundingRect(Mat(contours_poly[j]));
+		//rectangle(image, boundRect[j].tl(), boundRect[j].br(), Scalar(255, 255, 255), 3, 8, 0);
+	}
+	//for (int k = 0; k< contours.size(); k++)
+	//{
+	//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+	//drawContours(temp_binary, contours_poly, i, color, 1, 8, vector<Vec4i>(), 0, Point());
+	
+	//circle(drawing, center[i], (int)radius[i], color, 2, 8, 0);
+	cvNamedWindow("contours", CV_WINDOW_AUTOSIZE);
+	cv::imshow("contours", contourImage);
+	//}
+
+}
 //Finding circles inside image
 void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
-	/*
-	//output_image.create(image.size(), CV_8UC3);
-	std::cout << "Detecting circles "<< std::endl;
-	//declare and initialize both parameters that are subjects to change
-	int cannyThreshold = 200;
-	int accumulatorThreshold = 150;
-	int minDist = 55;
-	int maxRadii = 75;
-	int minRadii = 20;
-	cv::namedWindow("Hough Circle Detection Demo", CV_WINDOW_AUTOSIZE); //create a window called "Control"
-	cv::namedWindow("Circles Checking", CV_WINDOW_AUTOSIZE); //create a window called "Control"
+	output_image.create(image.size(), CV_8UC3);
+	//isolated_coin_input.create(image.size(), CV_8UC3);
 
+	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 1.5, 40, 200, 130, 15, 100);
 	
-	//std::string windowName = "Hough Circle Detection Demo";
-	//Create trackbars in "Control" window
-	cvCreateTrackbar("Canny threshold", "Hough Circle Detection Demo", &cannyThreshold, maxCannyThreshold); //Hue (0 - 179)
-	cvCreateTrackbar("Accumulator Threshold", "Hough Circle Detection Demo", &accumulatorThreshold, maxAccumulatorThreshold);
-	cvCreateTrackbar("Minimum Dist", "Hough Circle Detection Demo", &minDist, 100);
-	cvCreateTrackbar("Max Radii Threshold", "Hough Circle Detection Demo", &maxRadii, 200);
-	cvCreateTrackbar("Minimum Radii", "Hough Circle Detection Demo", &minRadii, 40);
-
-	int key = 0;
-	while (true)
-	{
-		//output_image.create(image.size(), CV_8UC3);
-		std::cout << "in loop" << std::endl;
-		coin_positions.clear();
-		// those paramaters cannot be =0
-		// so we must check here
-		//cannyThreshold = std::max(cannyThreshold, 1);
-		//accumulatorThreshold = std::max(accumulatorThreshold, 1);
-		std::cout << "whats taking time" << std::endl;
-		std::vector<Vec3f> circles;
-		// runs the actual detection
-		Mat display = output_image.clone();
-		HoughCircles(display, coin_positions, CV_HOUGH_GRADIENT, 1.5, minDist, cannyThreshold, accumulatorThreshold, minRadii, maxRadii);
-		std::cout << "Hough circle done" << std::endl;
-		// clone the colour, input image for displaying purposes
-		//	Mat display = output_image.clone();
-		for (size_t i = 0; i < coin_positions.size(); i++)
-		{
-			std::cout << "in for loop again" << std::endl;
-			Point center(cvRound(coin_positions[i][0]), cvRound(coin_positions[i][1]));
-			int radius = cvRound(coin_positions[i][2]);
-			// circle center
-			circle(display, center, 3, Scalar(0, 255, 0), -1, 8, 0);
-			// circle outline
-			circle(display, center, radius, Scalar(255, 255, 255), 3, 8, 0);
-		}
-
-		// shows the results
-		imshow("Circles Checking", display);
-		if (waitKey(30) == 27) //wait for 'esc' key press for 30ms. If 'esc' key is pressed, break loop
-		{
-			std::cout << "esc key is pressed by user" << std::endl;
-			break;
-		}
-
-		// get user key
-		//key = waitKey(10);
-	}
-	*/
-	cv::HoughCircles(output_image, coin_positions, CV_HOUGH_GRADIENT, 1.5, 55, 200, 130, 15, 75);
-
-	if(debug){
+	if (debug){
 		image.copyTo(output_image);
 
 		for (int i = 0; i < coin_positions.size(); i++) {
-			cv::Point center( cvRound(coin_positions[i][0]), cvRound(coin_positions[i][1]) );
-			int radius = cvRound( coin_positions[i][2] );
-		
+			cv::Point center(cvRound(coin_positions[i][0]), cvRound(coin_positions[i][1]));
+			int radius = cvRound(coin_positions[i][2]);
+
 			cv::circle(output_image, center, 3, cv::Scalar(0, 255, 0), -1, 8, 0);
 			cv::circle(output_image, center, radius, cv::Scalar(255, 255, 255), 3, 8, 0);
 		}
@@ -122,57 +92,112 @@ void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
 	}
 }
 
-void CoinDetector::isolate_coins(cv::Mat image, cv::Mat &output_image, cv::vector<cv::Mat> &output_coin_images){
+void CoinDetector::isolate_coins(cv::Mat image, cv::Mat isolated_image_input, cv::vector<cv::Mat> &output_coin_images){
+	//cvNamedWindow("isolatedinput", CV_WINDOW_AUTOSIZE);
+	//cv::imshow("isolatedinput", isolated_image_input);
+	//cv::waitKey(0);
+	//cvDestroyAllWindows();
 	float ratio = scale_error_ratio;
-	for (int i = 0; i < coin_positions.size(); i++) {
-		//int x = coin_positions[i][0]-coin_positions[i][2]*ratio;
-		//int y = coin_positions[i][1]-coin_positions[i][2]*ratio;
-		int x = coin_positions[i][0] - coin_positions[i][2]-10;
-		int y = coin_positions[i][1] - coin_positions[i][2]-10;
+	//cv::Mat iso_image;
+	//isolated_image_input.create(isolated_image_input.size(), CV_8UC3);
+	
+	for (int i = 0; i < coin_positions.size(); i++) 
+	{
+		int x = coin_positions[i][0] - coin_positions[i][2] * ratio;
+		int y = coin_positions[i][1] - coin_positions[i][2] * ratio;
 
 		//Make sure ROI never goes outside image boundaries
-		/*int w_max = (x > 0) ? coin_positions[i][2]*ratio : coin_positions[i][0];
-		w_max = (coin_positions[i][0]+coin_positions[i][2]*ratio < image.cols) ? w_max : image.cols - coin_positions[i][0];
+		int w_max = (x > 0) ? coin_positions[i][2] * ratio : coin_positions[i][0];
+		w_max = (coin_positions[i][0] + coin_positions[i][2] * ratio < image.cols) ? w_max : image.cols - coin_positions[i][0];
 
-		int h_max = (y > 0) ? coin_positions[i][2]*ratio : coin_positions[i][1];
-		h_max = (coin_positions[i][1]+coin_positions[i][2]*ratio < image.rows) ? h_max : image.rows - coin_positions[i][1];
-*/		
-		std::string s = std::to_string(i);
-		String isolated_image_name = "isolated_images/isolated_image_" + s + ".png";
-		
-		std::cout << isolated_image_name << std::endl;
-		
-		int w_max = coin_positions[i][2] + 10;
-		int h_max = coin_positions[i][2] + 10;
-		int width = 2*w_max;
-		int height = 2*h_max;
+		int h_max = (y > 0) ? coin_positions[i][2] * ratio : coin_positions[i][1];
+		h_max = (coin_positions[i][1] + coin_positions[i][2] * ratio < image.rows) ? h_max : image.rows - coin_positions[i][1];
 
-		cv::Mat temp = image( cvRect(x , y,	width, height) );
+		int width = 2 * w_max;
+		int height = 2 * h_max;
+
+		//cv::Mat temp_ori = image(cvRect(x, y, width, height));
+		cv::Mat temp = image(cvRect(x, y, width, height));
+		std::cout << "before devvrat" << std::endl;
 		//devvrat
-		cv::Mat temp_binary = output_image(cvRect(x, y, width, height));
-		
-		vector <vector<Point> > contours; // Vector for storing contour
+		cv::Mat temp_binary = isolated_coin_input(cvRect(x, y, width, height));
+		cvNamedWindow("temp_binary", CV_WINDOW_AUTOSIZE);
+		//cv::imshow("temp_binary", temp_binary);
+		std::vector<std::vector<cv::Point> > contours;
 		vector<Vec4i> hierarchy;
-		findContours(temp_binary, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE);
+		std::cout << "in devvrat" << std::endl;
+		cv::findContours(temp_binary, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+		cv::imshow("temp_binary", temp_binary);
+		std::cout << "finding contours" << std::endl;
+		vector<vector<Point> > contours_poly(contours.size());
+		vector<Rect> boundRect(contours.size());
+		float max_area = 0.0;
+		int max_area_idx = 0;
+		for (int j = 0; j < contours.size(); j++) {
+			approxPolyDP(Mat(contours[j]), contours_poly[j], 3, true);
+			boundRect[j] = boundingRect(Mat(contours_poly[j]));
+			float area = contourArea(contours[j], false);
+			if (area > max_area) {
+				max_area = area;
+				max_area_idx = j;
 
-		for (int i = 0; i < contours.size(); i++) {
-			float area = contourArea(contours[i], false);
-			if (area > 300) {
-				drawContours(temp, contours, i, Scalar(0, 0, 255), 2, 8, hierarchy);
+				//drawContours(temp_binary, contours, j, Scalar(255, 255, 255), 3, 8);
+				//std::cout << "drawing contours" << std::endl;
+				//cvNamedWindow("contours", CV_WINDOW_AUTOSIZE);
+				//cv::imshow("contours", temp_binary);
 			}
 		}
-		//devvrat
-		output_coin_images.push_back(temp);
-		cv::imwrite(isolated_image_name, temp);
+		float area = contourArea(contours[max_area_idx], false);
+		if (area > 300) {
+			drawContours(temp_binary, contours_poly, max_area_idx, Scalar(255, 255, 255), 3, 8, vector<Vec4i>(), 0, Point());
+			rectangle(temp_binary, boundRect[max_area_idx].tl(), boundRect[max_area_idx].br(), Scalar(255, 255, 255), 3, 8, 0);
+			//circle(drawing, center[i], (int)radius[i], color, 2, 8, 0);
+			cvNamedWindow("contours", CV_WINDOW_AUTOSIZE);
+			cv::imshow("contours", temp_binary);
+			//cv::waitKey(0);
+			//cvDestroyAllWindows();
+		}
+		//for (int k = 0; k< contours.size(); k++)
+		//{
+			//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+			////drawContours(temp_binary, contours_poly, max_area_idx, Scalar(255, 255, 255), 3, 8, vector<Vec4i>(), 0, Point());
+			////rectangle(temp_binary, boundRect[max_area_idx].tl(), boundRect[max_area_idx].br(), Scalar(255, 255, 255), 3, 8, 0);
+			//circle(drawing, center[i], (int)radius[i], color, 2, 8, 0);
+			////cvNamedWindow("contours", CV_WINDOW_AUTOSIZE);
+			////cv::imshow("contours", temp_binary);
+		//}
+		std::cout << "after devvrat" << std::endl;
+		cv::Point tl = boundRect[max_area_idx].tl();
+		cv::Point br = boundRect[max_area_idx].br();
+		int lx, ly, isolated_width, isolated_height;
+		lx = tl.x;
+		ly = tl.y + 1;
+		isolated_width = br.x - lx;
+		isolated_height = br.y - ly;
+		std::cout << "points x:" << tl.x << std::endl;
+		std::cout << "points y:" << tl.y << std::endl;
+		std::cout << "points x:" << br.x << std::endl;
+		std::cout << "points x:" << br.y << std::endl;
+		cv::Size s = temp.size();
+		std::cout << "size image" << s.width << std::endl;
+		std::cout << "size image" << s.height << std::endl;
+		cv::Mat temp_new = temp(cvRect(lx, ly, isolated_width, isolated_height));
+
+		//devvrat*/
+		//hitmiss(temp, temp, b);
+		output_coin_images.push_back(temp_new);
+		contours.clear();
+		hierarchy.clear();
+		contours_poly.clear();
+		boundRect.clear();
 		
 
-		if(debug) {
+		if (debug) {
 			//Initializing environment
-			cvNamedWindow("Isolated", CV_WINDOW_AUTOSIZE);
-			//cvResizeWindow("Isolated", 10, 20);
+			cvNamedWindow("Isolated", 1);
 
 			//Output
-			cv::imshow("Isolated", temp);
+			cv::imshow("Isolated", temp_new);
 			cv::waitKey(0);
 			cvDestroyAllWindows();
 		}
@@ -191,48 +216,33 @@ CoinDetector::CoinDetector(int debug_mode, float scale_error){
 int CoinDetector::detect(cv::Mat image, cv::Mat &output_image){
 	
 	CoinDetector::preprocess(image, output_image);
-	
+	//CoinDetector::find_contours(output_image);
 	CoinDetector::find_circles(output_image, output_image);
-	
-	CoinDetector::isolate_coins(image, output_image, coin_images);
 
-
-	if (coin_images.size() > 0)
-	{
-		output_image = coin_images[0];
-		if (debug) {
-			//Initializing environment
-			cvNamedWindow("output_image", 1);
-
-			//Output
-			cv::imshow("output_image", output_image);
-			cv::waitKey(0);
-			cvDestroyAllWindows();
-		}
-		CoinDetector::draw_bounds(image, output_image);
-	}
-	else
-	{
-		string text = "No coin detected.";
-		int fontFace = FONT_HERSHEY_SCRIPT_SIMPLEX;
-		double fontScale = 2;
-		int thickness = 3;
-		cv::Point textOrg(3, 4);
-		cv::putText(output_image, text, textOrg, fontFace, fontScale, Scalar::all(255), thickness, 8);
-		cvNamedWindow("Coins", 1);
-
-		//Output
-		cv::imshow("Coins", output_image);
-		cv::waitKey(0);
-		cvDestroyAllWindows();
-	}
+	CoinDetector::isolate_coins(image,isolated_coin_input, coin_images);
+	output_image = coin_images[0];
 
 	////TODO: implement this function so that it improves quality
 	////Testing: Do not use! Reduces result quality
 	//CoinDetector::correct_circles();
-	
+
+	CoinDetector::draw_bounds(image, output_image);
 
 	return 1;
+}
+void CoinDetector::hitmiss(cv::Mat& src, cv::Mat& dst, cv::Mat& kernel)
+{
+	CV_Assert(src.type() == CV_8U && src.channels() == 1);
+
+	cv::Mat k1 = (kernel == 1) / 255;
+	cv::Mat k2 = (kernel == -1) / 255;
+
+	cv::normalize(src, src, 0, 1, cv::NORM_MINMAX);
+
+	cv::Mat e1, e2;
+	cv::erode(src, e1, k1, cv::Point(-1, -1), 1, cv::BORDER_CONSTANT, cv::Scalar(0));
+	cv::erode(1 - src, e2, k2, cv::Point(-1, -1), 1, cv::BORDER_CONSTANT, cv::Scalar(0));
+	dst = e1 & e2;
 }
 
 void CoinDetector::correct_circles(){
