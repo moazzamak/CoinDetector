@@ -185,10 +185,9 @@ cv::vector<cv::Mat> CoinDetector::getCoins() {
 }
 
 //Returns positions of coin in image
-cv::vector<cv::Point2d> getCoinPositions() {}
+cv::vector<cv::Vec3f> CoinDetector::getCoinPositions() {
+	return coin_positions;
+}
 
 //Returns radius of coins in image
-cv::vector<double> getCoinRadii() {}
-
-//Returns classification of coins in image
-cv::vector<int> getCoinClass() {}
+cv::vector<double> CoinDetector::getCoinRadii() {}

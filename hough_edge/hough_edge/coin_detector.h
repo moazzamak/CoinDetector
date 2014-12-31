@@ -22,7 +22,7 @@ public:
 	CoinDetector(int debug_mode = 1, float scale_error = 1.5);
 	int detect(cv::Mat image, cv::Mat &result);
 	cv::vector<cv::Mat> getCoins();
-	cv::vector<cv::Point2d> getCoinPositions();
+	cv::vector<cv::Vec3f> getCoinPositions();
 	cv::vector<double> getCoinRadii();
 	cv::vector<int> getCoinClass();
 };

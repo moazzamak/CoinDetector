@@ -40,10 +40,18 @@ int main() {
 	//Detecting coins in image
 	cd.detect(frame, temp_frame);
 	cv::vector<cv::Mat> coins = cd.getCoins();
+	cv::vector<cv::Vec3f> coin_pos = cd.getCoinPositions();
 	cout << "Detected " << coins.size() << " coin candidates." << endl;
-	
+
 	//Identifying coins in image
-	ci.identify_coins(coins, frame, temp_frame);
+	ci.identify_coins(coins);
+	cv::vector<int> coin_hyp = ci.getCoinClass();
+	ci.draw_coins(frame, frame, coin_pos, coin_hyp);
+
+	cvNamedWindow("Frame");
+	cv::imshow("Frame", frame);
+	cv::waitKey(0);
+	cv::destroyAllWindows();
 
 	return 0;
 }
