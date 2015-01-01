@@ -2,8 +2,6 @@
 #include "coin_detector.h"
 #include <opencv2/video/background_segm.hpp>
 
-//Private functions
-using namespace cv;
 //Preprocessing image
 void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 
@@ -70,14 +68,19 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 		int height = 2 * h_max;
 
 		cv::Mat temp = image(cvRect(x, y, width, height));
-		
+
 		//to localize the coins we are finding contours from the binary image
 		cv::Mat temp_binary = isolated_coin_input(cvRect(x, y, width, height));
 		cvNamedWindow("temp_binary", CV_WINDOW_AUTOSIZE);
 		
+		
+		/////////////////////////////////////////////////
+		// DEV PLEASE TAKE THIS INTO A NEW FUNCTION
+		// 
+
 		//cv::imshow("temp_binary", temp_binary);
 		std::vector<std::vector<cv::Point> > contours;
-		cv::vector<Vec4i> hierarchy;
+		cv::vector<cv::Vec4i> hierarchy;
 		//std::cout << "in devvrat" << std::endl;
 		cv::Point offset;
 		offset.x = coin_positions[i][0];
@@ -86,13 +89,13 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 		
 		cv::imshow("temp_binary", temp_binary);
 		std::cout << "finding contours" << contours.size() << std::endl;
-		vector<vector<Point> > contours_poly(contours.size());
-		vector<Rect> boundRect(contours.size());
+		cv::vector< cv::vector<cv::Point> > contours_poly(contours.size());
+		cv::vector<cv::Rect> boundRect(contours.size());
 		float max_area = 0.0;
 		int max_area_idx = 0;
 		for (int j = 0; j < contours.size(); j++) {
-			approxPolyDP(Mat(contours[j]), contours_poly[j], 3, true);
-			boundRect[j] = boundingRect(Mat(contours_poly[j]));
+			approxPolyDP(cv::Mat(contours[j]), contours_poly[j], 3, true);
+			boundRect[j] = boundingRect(cv::Mat(contours_poly[j]));
 			float area = contourArea(contours[j], false);
 			if (area > max_area) {
 				max_area = area;
@@ -100,7 +103,8 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 			}
 		}
 		
-		
+		////////////////////////////////////////////////////////
+
 		//std::cout << "after devvrat" << std::endl;
 		cv::Point tl = boundRect[max_area_idx].tl();
 		cv::Point br = boundRect[max_area_idx].br();
