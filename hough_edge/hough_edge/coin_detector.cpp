@@ -237,4 +237,4 @@ cv::vector<cv::Vec3f> CoinDetector::getCoinPositions() {
 cv::vector<double> CoinDetector::getCoinRadii() {}
 
 //Returns classification of coins in image
-cv::vector<int> getCoinClass() {}
+cv::vector<int> CoinDetector::getCoinClass() {}
