@@ -6,6 +6,8 @@
 class CoinIdentifier {
 private:
 	int debug;
+	int divisions;
+
 	cv::vector<std::string> filelist;
 	cv::vector<int> hyp_list;
 
@@ -21,7 +23,7 @@ private:
 	double get_coin_val(int n);
 
 public:
-	CoinIdentifier(int ndebug = 0);
+	CoinIdentifier(int ndebug = 0, int ndivisions = 3);
 	void identify_coins(cv::vector<cv::Mat> coins);
 	int identify(cv::Mat image);
 	void train();

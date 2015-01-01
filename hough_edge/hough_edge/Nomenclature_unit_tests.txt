@@ -1,0 +1,11 @@
+Files are named in the following format to enable unit testing
+
+X_X_XX_X_X.jpg
+
+where X are numbers.
+
+The first number group represents whether or not the image is of a euro coin [0 or 1]
+The second number group represents the euro value of the coin [0, 1 or 2]
+The third number group represents the cent value of the coin [00, 01, 02, 05, 10, 20, 50]
+The fourth number group represents which side of the coin the image is of (tails or heads) [0 or 1]
+The fifth number group represents the serial number of the particular coin image in order to keep the file names from clashing [0 to 9]

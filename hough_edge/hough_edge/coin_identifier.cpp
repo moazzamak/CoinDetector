@@ -24,20 +24,23 @@ void CoinIdentifier::preprocess(cv::Mat image, cv::Mat &output_image) {
 	cv::split(output_image, channels);
 	channels[1].copyTo(output_image);
 
+
 	//if(image.channels() > 1) {
 	//	//Convert to grayscale
 	//	cv::cvtColor(output_image, output_image, CV_RGB2GRAY);
 	//}
 
+	cv::Mat blurred;
+
 	//Histogram equalization image to highlight edges
 	cv::minMaxIdx(output_image, &min, &max);
 	cv::equalizeHist(output_image, output_image);
 
-	//cv::Mat mask;
-	////Alternate to canny, more robust
-	//cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 7, 7);
-
-	//cv::GaussianBlur(mask, mask, cv::Size(3,3), 2, 2);
+	cv::GaussianBlur(output_image, blurred, cv::Size(5,5), 2, 2);
+	cv::subtract(blurred, output_image, output_image);
+	
+	//cv::multiply(0.5, blurred, blurred);
+	//cv::add(blurred, output_image, output_image);
 	
 	if(debug) {
 		cvNamedWindow("Preprocessed");
@@ -110,8 +113,9 @@ cv::Vec3b CoinIdentifier::interpolate(cv::Point2f pt, cv::Mat image) {
 }
 
 //Public functions
-CoinIdentifier::CoinIdentifier(int ndebug) {
+CoinIdentifier::CoinIdentifier(int ndebug, int ndivisions) {
 	debug = ndebug;
+	divisions = ndivisions;
 }
 
 void CoinIdentifier::identify_coins(cv::vector<cv::Mat> coins) {
@@ -142,120 +146,118 @@ void CoinIdentifier::identify_coins(cv::vector<cv::Mat> coins) {
 }
 
 int CoinIdentifier::identify(cv::Mat image) {
-
+	//Extracting features from current coin contender image
+	CoinIdentifier::unwrap_coin(image, image);
+	CoinIdentifier::preprocess(image, image);
 	
-		//Extracting features from current coin contender image
-		CoinIdentifier::unwrap_coin(image, image);
-		CoinIdentifier::preprocess(image, image);
-	
-		convert_to_mask(image, image);	
+	convert_to_mask(image, image);
 		
-		std::string folder_name = "features";
+	std::string folder_name = "features";
 
-		int best_match = -1;
-		int best_offset;
-		double best_score;
+	int best_match = -1;
+	int best_offset;
+	double best_score;
 
-		cv::Mat best_matched_template;
-		cv::Mat best_offset_image;
+	cv::Mat best_matched_template;
+	cv::Mat best_offset_image;
 
-		cv::Scalar gray_val_im = get_gray_values(image, 4);
+	cv::Scalar gray_val_im = get_gray_values(image, divisions);
 		
-		int match_counter = 0;
+	int match_counter = 0;
 
-		//Matching coin contender with templates
-		for (int i = 0; i < filelist.size(); i++) {
-			cv::Mat template_image = load_coin_from_template( i, folder_name );
+	//Matching coin contender with templates
+	for (int i = 0; i < filelist.size(); i++) {
+		cv::Mat template_image = load_coin_from_template( i, folder_name );
 
-			cv::Mat new_image;
-			cv::resize(image, new_image, template_image.size());
+		cv::Mat new_image;
+		cv::resize(image, new_image, template_image.size());
 
-			convert_to_mask(template_image, template_image);
+		convert_to_mask(template_image, template_image);
 
-			cv::Scalar gray_val_template = get_gray_values(template_image, 4);
+		cv::Scalar gray_val_template = get_gray_values(template_image, divisions);
 			
-			cv::Scalar out_gray;
-			cv::subtract(gray_val_im, gray_val_template, out_gray);
-			out_gray = abs_scalar(out_gray);
+		cv::Scalar out_gray;
+		cv::subtract(gray_val_im, gray_val_template, out_gray);
+		out_gray = abs_scalar(out_gray);
 
-			cv::Scalar out_gray_cum = sum(out_gray);
+		cv::Scalar out_gray_cum = sum(out_gray);
 
-			double local_best;
-			int local_best_offset;
-			cv::Mat local_offset_image;
+		double local_best;
+		int local_best_offset;
+		cv::Mat local_offset_image;
 			
-			//If the gray value lines match
-			if (out_gray_cum[0] < 0.2){
-				match_counter++;
+		//If the gray value lines match
+		if (out_gray_cum[0] < 0.2){
+			match_counter++;
 
-				for (int j = 0; j < new_image.cols; j++) {
-					offset_x(new_image, new_image, j);
+			for (int j = 0; j < new_image.cols; j++) {
+				offset_x(new_image, new_image, j);
 
-					////Using subtraction
-					cv::Mat overlap;
-					cv::subtract(template_image, new_image, overlap);
-					//cv::multiply(template_image, new_image, overlap);
+				////Using subtraction
+				cv::Mat overlap;
+				cv::subtract(template_image, new_image, overlap);
+				//cv::multiply(template_image, new_image, overlap);
 
-					//Make score from [0-1] least to most similar so it is interchangable with SSIM
-					cv::Scalar s = sum(sum(overlap));
-					s[0] = 1 - abs( s[0] / (new_image.cols * new_image.rows));
+				//Make score from [0-1] least to most similar so it is interchangable with SSIM
+				cv::Scalar s = sum(sum(overlap));
+				s[0] = 1 - abs( s[0] / (new_image.cols * new_image.rows));
 
-					////Using SSIM
-					//cv::Scalar s = getMSSIM(new_image, template_image);
+				////Using SSIM
+				//cv::Scalar s = getMSSIM(new_image, template_image);
 				
-					if(j==0 || abs(s[0]) > local_best) {
-						local_best = abs(s[0]);
-						local_best_offset = j;
-						new_image.copyTo(local_offset_image);
-					}
-				}
-
-				if(debug){
-					cout << "Gray Value Similarity: " << out_gray_cum[0] << endl;
-					cout << "Local best score: " << local_best << endl
-						<< "File name: " << filelist[i] << endl
-						<< "Offset: " << local_best_offset << endl << endl;
-
-					cvNamedWindow("candidate");
-					cvNamedWindow("template");
-
-					cv::imshow("candidate", local_offset_image);
-					cv::imshow("template", template_image);
-					cv::waitKey(0);
-					cv::destroyAllWindows();
-				}
-
-				if(i==0 || local_best > best_score) {
-						best_score = local_best;
-						best_offset = local_best_offset;
-						local_offset_image.copyTo(best_offset_image);
-
-						best_match = i;
-						template_image.copyTo(best_matched_template);
+				if(j==0 || abs(s[0]) > local_best) {
+					local_best = abs(s[0]);
+					local_best_offset = j;
+					new_image.copyTo(local_offset_image);
 				}
 			}
-		}
 
-		if(match_counter == 0) {
-			cout << "No matches found for coin!" << endl;
-			return -1;
-		}
+			if(debug){
+				cout << "Gray Value Similarity: " << out_gray_cum[0] << endl;
+				cout << "Local best score: " << local_best << endl
+					<< "File name: " << filelist[i] << endl
+					<< "Offset: " << local_best_offset << endl << endl;
 
-		if(debug || 1){
-			cout << endl << "Best template match for image: " << filelist[best_match] << endl
-			<< "Best match score: " << best_score << endl
-			<< "Best match offset: " << best_offset << endl << endl;
+				cvNamedWindow("candidate");
+				cvNamedWindow("template");
+
+				cv::imshow("candidate", local_offset_image);
+				cv::imshow("template", template_image);
+				cv::waitKey(0);
+				cv::destroyAllWindows();
+			}
+
+			if(i==0 || local_best > best_score) {
+					best_score = local_best;
+					best_offset = local_best_offset;
+					local_offset_image.copyTo(best_offset_image);
+
+					best_match = i;
+					template_image.copyTo(best_matched_template);
+			}
+		}
+	}
+
+	if(match_counter == 0) {
+		cout << "No matches found for coin!" << endl;
+		return -1;
+	}
+
+	if(debug){
+		cout << endl << "Best template match for image: " << filelist[best_match] << endl
+		<< "Best match score: " << best_score << endl
+		<< "Best match offset: " << best_offset << endl << endl;
 	
-			cvNamedWindow("candidate");
-			cvNamedWindow("template");
+		cvNamedWindow("candidate");
+		cvNamedWindow("template");
 
-			cv::imshow("candidate", best_offset_image);
-			cv::imshow("template", best_matched_template);
-			cv::waitKey(0);
-			cv::destroyAllWindows();
-		}
+		cv::imshow("candidate", best_offset_image);
+		cv::imshow("template", best_matched_template);
+		cv::waitKey(0);
+		cv::destroyAllWindows();
+	}
 
-		return best_match;
+	return best_match;
 }
 
 void CoinIdentifier::train() {
@@ -365,6 +367,19 @@ cv::vector<int> CoinIdentifier::getCoinClass() {
 
 //Returns coin currency based of template file number
 double CoinIdentifier::get_coin_val(int n) {
+	/*
+		Files are named in the following format:
+
+		X_XX_X_X.jpg
+
+		where X are numbers.
+
+		The first number group represents the euro value of the coin [0, 1 or 2]
+		The second number group represents the cent value of the coin [00, 01, 02, 05, 10, 20, 50]
+		The third number group represents which side of the coin the image is of (tails or heads) [0 or 1]
+		The fourth number group represents the serial number of the particular coin image in order to keep the file names from clashing [0 to 9]
+	*/
+
 	string name = filelist[n];
 
 	int euro = stoi(name.substr(0, 1));

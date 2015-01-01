@@ -51,7 +51,7 @@ int main() {
 	if(DEBUG || 1) {
 		for (int i = 0; i < coins.size(); i++){
 			ostringstream ost;
-			ost << isolated_output_folder << "/isolated_image" << i + 1 << ".png";
+			ost << isolated_output_folder << "/isolated_image" << i + 1 << ".jpg";
 			string isolated_coin_name = ost.str();
 			cv::imwrite(isolated_coin_name, coins[i]);
 		}
