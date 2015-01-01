@@ -47,11 +47,13 @@ int main() {
 	cv::vector<cv::Vec3f> coin_pos = cd.getCoinPositions();
 	cout << "Detected " << coins.size() << " coin candidates." << endl;
 
+	for (int i = 0; i < coins.size(); i++){
 		ostringstream ost;
 		ost << isolated_output_folder << "/isolated_image" << i + 1 << ".png";
 		string isolated_coin_name = ost.str();
 		cv::imwrite(isolated_coin_name, coins[i]);
 	}
+
 	//Identifying coins in image
 	ci.identify_coins(coins);
 	cv::vector<int> coin_hyp = ci.getCoinClass();
@@ -63,6 +65,3 @@ int main() {
 	cv::destroyAllWindows();
 	return 0;
 }
-
-//cv::Mat fetchFrame() {
-//}
