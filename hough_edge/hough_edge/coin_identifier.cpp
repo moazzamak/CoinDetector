@@ -119,7 +119,12 @@ void CoinIdentifier::identify_coins(cv::vector<cv::Mat> coins) {
 
 	for(int i = 0; i < coins.size(); i++) {
 		int coin_hypothesis = identify(coins[i]);
+		
+		if(coin_hypothesis == -1)
+			coin_hypothesis = 0;
+		
 		hyp_list.push_back(coin_hypothesis);
+
 
 		if(debug) {
 			cvNamedWindow("coin");
@@ -155,6 +160,8 @@ int CoinIdentifier::identify(cv::Mat image) {
 		cv::Mat best_offset_image;
 
 		cv::Scalar gray_val_im = get_gray_values(image, 4);
+		
+		int match_counter = 0;
 
 		//Matching coin contender with templates
 		for (int i = 0; i < filelist.size(); i++) {
@@ -179,6 +186,8 @@ int CoinIdentifier::identify(cv::Mat image) {
 			
 			//If the gray value lines match
 			if (out_gray_cum[0] < 0.2){
+				match_counter++;
+
 				for (int j = 0; j < new_image.cols; j++) {
 					offset_x(new_image, new_image, j);
 
@@ -227,7 +236,12 @@ int CoinIdentifier::identify(cv::Mat image) {
 			}
 		}
 
-		if(debug){
+		if(match_counter == 0) {
+			cout << "No matches found for coin!" << endl;
+			return -1;
+		}
+
+		if(debug || 1){
 			cout << endl << "Best template match for image: " << filelist[best_match] << endl
 			<< "Best match score: " << best_score << endl
 			<< "Best match offset: " << best_offset << endl << endl;
@@ -297,7 +311,7 @@ cv::Scalar CoinIdentifier::get_gray_values(cv::Mat image, int levels) {
 
 	cv::Mat temp;
 	for (int i = 0; i < levels; i++) {
-		temp = image(cv::Rect(0, i*inc, image.cols, 1));
+		temp = image(cv::Rect(0, i*inc, image.cols, inc));
 		cv::Scalar s = sum(sum(temp))/(image.cols*image.rows);
 		out[i] = s[0]*100;
 	}
