@@ -15,14 +15,14 @@ using namespace cv;
 #define DEBUG 0
 
 int main() {
-	//Initializing objects
-
+	//Initializing objects and variables
+	string isolated_output_folder = "isolated_images";
 	cv::Mat frame, temp_frame, temp_coin;
 
 	//Initializing ImageStream class
 	//this handles images saved on file as an input stream
 	ImageStream cap("test_data", "image_", ".jpg", 200);
-	string isolated_output_folder = "isolated_images";
+
 	////Or alternately open webcam
 	//cv::VideoCapture cap(0);
 
@@ -32,7 +32,7 @@ int main() {
 	CoinIdentifier ci(DEBUG);
 
 	ci.train();
-	//for (;;){
+
 	////Loading resources
 	cap >> frame;
 
@@ -47,18 +47,21 @@ int main() {
 	cv::vector<cv::Vec3f> coin_pos = cd.getCoinPositions();
 	cout << "Detected " << coins.size() << " coin candidates." << endl;
 
-	for (int i = 0; i < coins.size(); i++){
-		ostringstream ost;
-		ost << isolated_output_folder << "/isolated_image" << i + 1 << ".png";
-		string isolated_coin_name = ost.str();
-		cv::imwrite(isolated_coin_name, coins[i]);
+	// Writing coins isolated
+	if(DEBUG || 1) {
+		for (int i = 0; i < coins.size(); i++){
+			ostringstream ost;
+			ost << isolated_output_folder << "/isolated_image" << i + 1 << ".png";
+			string isolated_coin_name = ost.str();
+			cv::imwrite(isolated_coin_name, coins[i]);
+		}
 	}
-
-	//Identifying coins in image
+	// Identifying coins in image
 	ci.identify_coins(coins);
 	cv::vector<int> coin_hyp = ci.getCoinClass();
 	ci.draw_coins(frame, frame, coin_pos, coin_hyp);
 
+	// Show output
 	cvNamedWindow("Frame");
 	cv::imshow("Frame", frame);
 	cv::waitKey(0);
