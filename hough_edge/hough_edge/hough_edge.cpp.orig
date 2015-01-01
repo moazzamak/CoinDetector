@@ -46,12 +46,8 @@ int main() {
 	cv::vector<cv::Mat> coins = cd.getCoins();
 	cv::vector<cv::Vec3f> coin_pos = cd.getCoinPositions();
 	cout << "Detected " << coins.size() << " coin candidates." << endl;
+<<<<<<< HEAD
 
-		ostringstream ost;
-		ost << isolated_output_folder << "/isolated_image" << i + 1 << ".png";
-		string isolated_coin_name = ost.str();
-		cv::imwrite(isolated_coin_name, coins[i]);
-	}
 	//Identifying coins in image
 	ci.identify_coins(coins);
 	cv::vector<int> coin_hyp = ci.getCoinClass();
@@ -61,6 +57,19 @@ int main() {
 	cv::imshow("Frame", frame);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
+
+=======
+	for (int i = 0; i < coins.size(); i++){
+		ostringstream ost;
+		ost << isolated_output_folder << "/isolated_image" << i + 1 << ".png";
+		string isolated_coin_name = ost.str();
+		cv::imwrite(isolated_coin_name, coins[i]);
+	}
+	//Identifying coins in image
+	ci.identify_coins(coins, frame, temp_frame);
+	//if (waitKey(30) >= 0) break;   // you can increase delay to 2 seconds here
+	//}
+>>>>>>> origin/master
 	return 0;
 }
 

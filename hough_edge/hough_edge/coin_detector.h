@@ -12,6 +12,7 @@ private:
 	cv::vector<cv::Vec3f> corrected_positions;
 	cv::vector<int> coin_classes;
 	cv::vector<cv::Mat> coin_images;
+	cv::Mat isolated_coin_input;
 
 	void preprocess(cv::Mat image, cv::Mat &output_image);
 	void find_circles(cv::Mat image, cv::Mat &output_image);
@@ -25,6 +26,7 @@ public:
 	cv::vector<cv::Vec3f> getCoinPositions();
 	cv::vector<double> getCoinRadii();
 	cv::vector<int> getCoinClass();
+
 };
 
 #endif
