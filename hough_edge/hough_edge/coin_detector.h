@@ -35,7 +35,6 @@ public:
 	cv::vector<double> getCoinRadii();
 	cv::vector<int> getCoinClass();
 	void calibrate(cv::Mat test_image);
-	static void calibrate_cb(int, void* userdata);
 	cv::Mat calibration_result();
 	cv::Mat calibration_image;
 };

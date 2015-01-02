@@ -9,8 +9,8 @@ void CoinDetector::calibrate(cv::Mat test_image){
 	cvNamedWindow("Calibration", CV_WINDOW_AUTOSIZE);
 	test_image.copyTo(calibration_image);
 	
-	cv::createTrackbar("Min Radius", "Calibration", &min_circle_radius, min_circle_radius_limit);//, calibrate_cb, this);
-	cv::createTrackbar("Max Radius", "Calibration", &max_circle_radius, max_circle_radius_limit);//, calibrate_cb, this);
+	cv::createTrackbar("Min Radius", "Calibration", &min_circle_radius, min_circle_radius_limit);
+	cv::createTrackbar("Max Radius", "Calibration", &max_circle_radius, max_circle_radius_limit);
 
 	while(1) {
 		cv::Mat temp = calibration_result();
@@ -24,11 +24,6 @@ void CoinDetector::calibrate(cv::Mat test_image){
 	cvDestroyAllWindows();
 
 	calibrating = false;
-}
-
-void CoinDetector::calibrate_cb(int, void* userdata){
-	CoinDetector * Ptr_cd = (CoinDetector *)userdata;
-	Ptr_cd->calibration_result();
 }
 
 cv::Mat CoinDetector::calibration_result(){
@@ -80,7 +75,6 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 //Finding circles inside image
 void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
 	output_image.create(image.size(), CV_8UC3);
-	//isolated_coin_input.create(image.size(), CV_8UC3);
 	std::cout << "min circle radius" << min_circle_radius << std::endl;
 	std::cout << "max circle radius" << max_circle_radius << std::endl;
 	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 2.0, 40, 200, 130, 20, 80);
@@ -177,8 +171,6 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 		output_coin_images.push_back(temp_new);
 		contours.clear();
 		hierarchy.clear();
-		//contours_poly.clear();
-		//boundRect.clear();
 
 		if (debug) {
 			//Initializing environment
