@@ -16,8 +16,8 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	cv::dilate(output_image, output_image, cv::KERNEL_GENERAL);
 	//Alternate to canny, more robust
 	//cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 15);
-	//Canny(output_image, output_image, 75, 255, 3);
-	cv::threshold(output_image, output_image, 75, 255, CV_THRESH_BINARY);
+	Canny(output_image, output_image, 75, 255, 3);
+	//cv::threshold(output_image, output_image, 75, 255, CV_THRESH_BINARY);
 	output_image.copyTo(isolated_coin_input);
 	if (debug){
 		cvNamedWindow("Preprocessed");
@@ -33,7 +33,7 @@ void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
 	output_image.create(image.size(), CV_8UC3);
 	//isolated_coin_input.create(image.size(), CV_8UC3);
 
-	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 2.0, 40, 200, 130, 10, 70);
+	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 2.0, 40, 200, 130, 10, 100);
 
 	if (debug){
 		image.copyTo(output_image);
@@ -82,7 +82,7 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 		cv::Point offset;
 		offset.x = coin_positions[i][0];
 		offset.y = coin_positions[i][1];
-		cv::findContours(temp_binary, contours, hierarchy, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+		cv::findContours(temp_binary, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 		
 		cv::imshow("temp_binary", temp_binary);
 		std::cout << "finding contours" << contours.size() << std::endl;
@@ -99,8 +99,9 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 				max_area_idx = j;
 			}
 		}
-		
-		
+		//Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0, 255));
+		drawContours(temp_binary, contours, max_area_idx, cv::Scalar(255, 255, 255), 2, 8, hierarchy, 0, Point());
+		cv::imshow("temp_binary", temp_binary);
 		//std::cout << "after devvrat" << std::endl;
 		cv::Point tl = boundRect[max_area_idx].tl();
 		cv::Point br = boundRect[max_area_idx].br();
