@@ -12,7 +12,7 @@
 using namespace std;
 using namespace cv;
 
-#define DEBUG 0
+#define DEBUG 1
 
 int main() {
 	//Initializing objects
@@ -29,9 +29,9 @@ int main() {
 	//TODO: I'm putting this to 1.0f for now Dev you need to fix the circle localization
 	//so we can put the extra region back
 	CoinDetector cd(DEBUG);
-	CoinIdentifier ci(DEBUG);
+	//CoinIdentifier ci(DEBUG);
 
-	ci.train();
+	//ci.train();
 	//for (;;){
 	////Loading resources
 	cap >> frame;
@@ -40,7 +40,8 @@ int main() {
 		cout << "Error: Could not find file "  << endl;
 		return -1;
 	}
-
+	//cd.calibrate(frame);
+	//cout << "Done calibration" << endl;
 	//Detecting coins in image
 	cd.detect(frame, temp_frame);
 	cv::vector<cv::Mat> coins = cd.getCoins();
@@ -52,7 +53,7 @@ int main() {
 		cv::imwrite(isolated_coin_name, coins[i]);
 	}
 	//Identifying coins in image
-	ci.identify_coins(coins, frame, temp_frame);
+	//ci.identify_coins(coins, frame, temp_frame);
 	//if (waitKey(30) >= 0) break;   // you can increase delay to 2 seconds here
 	//}
 	return 0;

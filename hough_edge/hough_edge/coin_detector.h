@@ -19,6 +19,13 @@ private:
 	void isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin_images);
 	void draw_bounds(cv::Mat image, cv::Mat output_image);
 	void correct_circles();
+
+protected:
+	 int min_circle_radius = 10;
+	 int min_circle_radius_limit = 50;
+	 int max_circle_radius = 70;
+	 int max_circle_radius_limit = 150;
+
 public:
 	CoinDetector(int debug_mode = 1, float scale_error = 1.5);
 	int detect(cv::Mat image, cv::Mat &result);
@@ -26,7 +33,10 @@ public:
 	cv::vector<cv::Point2d> getCoinPositions();
 	cv::vector<double> getCoinRadii();
 	cv::vector<int> getCoinClass();
-
+	void calibrate(cv::Mat test_image);
+	static void calibrate_cb(int, void* userdata);
+	void CoinDetector::calibration_result();
+	cv::Mat calibration_image;
 };
 
 #endif
