@@ -168,6 +168,7 @@ int CoinIdentifier::identify(cv::Mat image) {
 		}
 
 		cout << best_match << "\t" << best_score << endl;
+		return 1;
 }
 
 void CoinIdentifier::train() {
