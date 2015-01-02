@@ -180,9 +180,14 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 //Public functions
 
 //Default Constructor
-CoinDetector::CoinDetector(int debug_mode, float scale_error) {
+CoinDetector::CoinDetector(int debug_mode, float scale_error){
 	debug = debug_mode;
 	scale_error_ratio = scale_error;
+
+	min_circle_radius = 10;
+	min_circle_radius_limit = 50;
+	max_circle_radius = 70;
+	max_circle_radius_limit = 150;
 }
 
 //Running detector on an image
