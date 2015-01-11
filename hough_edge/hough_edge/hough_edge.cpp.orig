@@ -12,27 +12,32 @@
 using namespace std;
 using namespace cv;
 
-#define DEBUG 0
+#define DEBUG 1
 
 int main() {
-	//Initializing objects
-
+	//Initializing objects and variables
+	string isolated_output_folder = "isolated_images";
 	cv::Mat frame, temp_frame, temp_coin;
 
 	//Initializing ImageStream class
 	//this handles images saved on file as an input stream
 	ImageStream cap("test_data", "image_", ".jpg", 200);
-	string isolated_output_folder = "isolated_images";
+
 	////Or alternately open webcam
 	//cv::VideoCapture cap(0);
 
 	//TODO: I'm putting this to 1.0f for now Dev you need to fix the circle localization
 	//so we can put the extra region back
 	CoinDetector cd(DEBUG);
-	CoinIdentifier ci(DEBUG);
+	//CoinIdentifier ci(DEBUG);
 
+<<<<<<< HEAD
 	ci.train();
+
+=======
+	//ci.train();
 	//for (;;){
+>>>>>>> origin/coinDetector
 	////Loading resources
 	cap >> frame;
 
@@ -40,38 +45,43 @@ int main() {
 		cout << "Error: Could not find file "  << endl;
 		return -1;
 	}
-
+	
+	cd.calibrate(frame);
+	cout << "Done calibration" << endl;
+	
 	//Detecting coins in image
 	cd.detect(frame, temp_frame);
 	cv::vector<cv::Mat> coins = cd.getCoins();
 	cv::vector<cv::Vec3f> coin_pos = cd.getCoinPositions();
 	cout << "Detected " << coins.size() << " coin candidates." << endl;
-<<<<<<< HEAD
 
-	//Identifying coins in image
+	// Writing coins isolated
+	if(DEBUG || 1) {
+		for (int i = 0; i < coins.size(); i++){
+			ostringstream ost;
+			ost << isolated_output_folder << "/isolated_image" << i + 1 << ".jpg";
+			string isolated_coin_name = ost.str();
+			cv::imwrite(isolated_coin_name, coins[i]);
+		}
+	}
+<<<<<<< HEAD
+	// Identifying coins in image
 	ci.identify_coins(coins);
 	cv::vector<int> coin_hyp = ci.getCoinClass();
 	ci.draw_coins(frame, frame, coin_pos, coin_hyp);
 
+	// Show output
 	cvNamedWindow("Frame");
 	cv::imshow("Frame", frame);
 	cv::waitKey(0);
 	cv::destroyAllWindows();
-
-=======
-	for (int i = 0; i < coins.size(); i++){
-		ostringstream ost;
-		ost << isolated_output_folder << "/isolated_image" << i + 1 << ".png";
-		string isolated_coin_name = ost.str();
-		cv::imwrite(isolated_coin_name, coins[i]);
-	}
-	//Identifying coins in image
-	ci.identify_coins(coins, frame, temp_frame);
-	//if (waitKey(30) >= 0) break;   // you can increase delay to 2 seconds here
-	//}
->>>>>>> origin/master
 	return 0;
 }
-
-//cv::Mat fetchFrame() {
-//}
+=======
+	//Identifying coins in image
+	//ci.identify_coins(coins, frame, temp_frame);
+	//if (waitKey(30) >= 0) break;   // you can increase delay to 2 seconds here
+	//}
+	return 0;
+}
+>>>>>>> origin/coinDetector

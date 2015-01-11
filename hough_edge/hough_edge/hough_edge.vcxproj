@@ -147,6 +147,7 @@
     <ClCompile Include="coin_identifier.cpp" />
     <ClCompile Include="file_handler.cpp" />
     <ClCompile Include="hough_edge.cpp" />
+    <ClCompile Include="image_processing.cpp" />
     <ClCompile Include="image_stream.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -154,6 +155,7 @@
     <ClInclude Include="coin_identifier.h" />
     <ClInclude Include="dirent.h" />
     <ClInclude Include="file_handler.h" />
+    <ClInclude Include="image_processing.h" />
     <ClInclude Include="image_stream.h" />
     <ClInclude Include="shift.hpp" />
     <ClInclude Include="ssim.h" />
