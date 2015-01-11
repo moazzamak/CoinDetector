@@ -258,6 +258,7 @@ int CoinIdentifier::identify(cv::Mat image) {
 	}
 
 	return best_match;
+		return 1;
 }
 
 void CoinIdentifier::train() {
