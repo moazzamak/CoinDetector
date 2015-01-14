@@ -41,7 +41,7 @@ int main() {
 		return -1;
 	}
 	//cd.calibrate(frame);
-	//cout << "Done calibration" << endl;
+	cout << "Done calibration" << endl;
 	//Detecting coins in image
 	cd.detect(frame, temp_frame);
 	cv::vector<cv::Mat> coins = cd.getCoins();

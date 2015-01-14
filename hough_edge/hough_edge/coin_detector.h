@@ -7,6 +7,7 @@ class CoinDetector {
 private:
 	int debug;
 	float scale_error_ratio;
+	bool calibrating;
 	//Result will be contained in these variables
 	cv::vector<cv::Vec3f> coin_positions;
 	cv::vector<cv::Vec3f> corrected_positions;
@@ -21,10 +22,10 @@ private:
 	void correct_circles();
 
 protected:
-	 int min_circle_radius = 10;
-	 int min_circle_radius_limit = 50;
-	 int max_circle_radius = 70;
-	 int max_circle_radius_limit = 150;
+	int min_circle_radius;
+	int min_circle_radius_limit;
+	int max_circle_radius;
+	int max_circle_radius_limit;
 
 public:
 	CoinDetector(int debug_mode = 1, float scale_error = 1.5);
@@ -34,8 +35,7 @@ public:
 	cv::vector<double> getCoinRadii();
 	cv::vector<int> getCoinClass();
 	void calibrate(cv::Mat test_image);
-	static void calibrate_cb(int, void* userdata);
-	void CoinDetector::calibration_result();
+	cv::Mat calibration_result();
 	cv::Mat calibration_image;
 };
 
