@@ -8,6 +8,7 @@ void CoinDetector::calibrate(cv::Mat test_image){
 	calibrating = true;
 	cvNamedWindow("Calibration", CV_WINDOW_AUTOSIZE);
 	test_image.copyTo(calibration_image);
+<<<<<<< HEAD
 
 	cv::createTrackbar("Min Radius", "Calibration", &min_circle_radius, min_circle_radius_limit);
 	cv::createTrackbar("Max Radius", "Calibration", &max_circle_radius, max_circle_radius_limit);
@@ -23,6 +24,23 @@ void CoinDetector::calibrate(cv::Mat test_image){
 	std::cout << "Finishing calibration" << std::endl;
 	cvDestroyAllWindows();
 
+=======
+	
+	cv::createTrackbar("Min Radius", "Calibration", &min_circle_radius, min_circle_radius_limit);
+	cv::createTrackbar("Max Radius", "Calibration", &max_circle_radius, max_circle_radius_limit);
+
+	while(1) {
+		cv::Mat temp = calibration_result();
+		
+		cv::imshow("Calibration", temp);
+		int k = cv::waitKey(50);
+		if(k == 27)
+			break;
+	}
+	std::cout << "Finishing calibration" << std::endl;
+	cvDestroyAllWindows();
+
+>>>>>>> origin/coinDetector
 	calibrating = false;
 }
 
@@ -35,11 +53,19 @@ cv::Mat CoinDetector::calibration_result(){
 
 	preprocess(calibration_image, temp);
 	cv::HoughCircles(temp, circles, CV_HOUGH_GRADIENT, 2.0, 40, 200, 130, min_circle_radius, max_circle_radius);
+<<<<<<< HEAD
 
 	for (int i = 0; i < circles.size(); i++) {
 		cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 		int radius = cvRound(circles[i][2]);
 
+=======
+	
+	for (int i = 0; i < circles.size(); i++) {
+		cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+		int radius = cvRound(circles[i][2]);
+		
+>>>>>>> origin/coinDetector
 		cv::circle(temp, center, radius, cv::Scalar(255, 255, 255), 2, 8, 0);
 	}
 
@@ -59,9 +85,15 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	//Alternate to canny, more robust
 	//cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 15);
 	cv::Canny(output_image, output_image, 75, 255, 3);
+<<<<<<< HEAD
 
 	//cv::threshold(output_image, output_image, 75, 255, CV_THRESH_BINARY);
 
+=======
+	
+	//cv::threshold(output_image, output_image, 75, 255, CV_THRESH_BINARY);
+	
+>>>>>>> origin/coinDetector
 	output_image.copyTo(isolated_coin_input);
 	if (debug && !calibrating){
 		cvNamedWindow("Preprocessed");
@@ -287,10 +319,10 @@ cv::vector<cv::Mat> CoinDetector::getCoins() {
 
 
 //Returns positions of coin in image
-//cv::vector<cv::Point2d> getCoinPositions() {}
+cv::vector<cv::Point2d> CoinDetector::getCoinPositions() {}
 
 //Returns radius of coins in image
-//cv::vector<double> getCoinRadii() {}
+cv::vector<double> CoinDetector::getCoinRadii() {}
 
 //Returns classification of coins in image
-//cv::vector<int> getCoinClass() {}
+cv::vector<int> CoinDetector::getCoinClass() {}

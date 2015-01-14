@@ -40,8 +40,15 @@ int main() {
 		cout << "Error: Could not find file "  << endl;
 		return -1;
 	}
+<<<<<<< HEAD
 	//cd.calibrate(frame);
 	cout << "Done calibration" << endl;
+=======
+	
+	cd.calibrate(frame);
+	cout << "Done calibration" << endl;
+	
+>>>>>>> origin/coinDetector
 	//Detecting coins in image
 	cd.detect(frame, temp_frame);
 	cv::vector<cv::Mat> coins = cd.getCoins();
@@ -58,6 +65,3 @@ int main() {
 	//}
 	return 0;
 }
-
-//cv::Mat fetchFrame() {
-//}
