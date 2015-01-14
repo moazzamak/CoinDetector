@@ -24,10 +24,11 @@ private:
 
 public:
 	CoinIdentifier(int ndebug = 0, int ndivisions = 3);
-	void identify_coins(cv::vector<cv::Mat> coins);
-	int identify(cv::Mat image);
+	void identify_coins(cv::vector<cv::Mat> coins, cv::vector<int> coin_class_groups);
+	int identify(cv::Mat image, int coin_class_group);
 	void train();
 	void draw_coins(cv::Mat image, cv::Mat &output, cv::vector<cv::Vec3f> coin_positions, cv::Vector<int> hyp_list);
+	bool getTemplateClass(int index);
 
 	//Might need to move this function to a separate file to handle String operations
 	std::string get_qualified_name(std::string folder_name, std::string file_name);

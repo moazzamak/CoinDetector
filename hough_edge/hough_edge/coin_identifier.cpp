@@ -118,19 +118,24 @@ CoinIdentifier::CoinIdentifier(int ndebug, int ndivisions) {
 	divisions = ndivisions;
 }
 
-void CoinIdentifier::identify_coins(cv::vector<cv::Mat> coins) {
+void CoinIdentifier::identify_coins(cv::vector<cv::Mat> coins, cv::vector<int> coin_class_groups) {
 	hyp_list.clear();
 
 	for(int i = 0; i < coins.size(); i++) {
-		int coin_hypothesis = identify(coins[i]);
+		int coin_hypothesis = identify(coins[i], coin_class_groups[i]);
 		
-		if(coin_hypothesis == -1)
-			coin_hypothesis = 0;
+		//if(coin_hypothesis == -1)
+		//	coin_hypothesis = 0;
 		
+		if (coin_hypothesis > 4 || coin_hypothesis < -1)
+			coin_hypothesis = -1;
+			
+
+		cout << "H: " << coin_hypothesis << endl;
 		hyp_list.push_back(coin_hypothesis);
 
-
-		if(debug) {
+		
+		if (debug && coin_hypothesis != -1) {
 			cvNamedWindow("coin");
 			cvNamedWindow("match");
 			std::string loc_coins = "training_data";
@@ -145,7 +150,7 @@ void CoinIdentifier::identify_coins(cv::vector<cv::Mat> coins) {
 	}
 }
 
-int CoinIdentifier::identify(cv::Mat image) {
+int CoinIdentifier::identify(cv::Mat image, int coin_class_group) {
 	//Extracting features from current coin contender image
 	CoinIdentifier::unwrap_coin(image, image);
 	CoinIdentifier::preprocess(image, image);
@@ -167,6 +172,11 @@ int CoinIdentifier::identify(cv::Mat image) {
 
 	//Matching coin contender with templates
 	for (int i = 0; i < filelist.size(); i++) {
+		int template_group = getTemplateClass(i);
+		//if (coin_class_group != template_group || coin_class_group == -1){
+		//	continue;
+		//}
+
 		cv::Mat template_image = load_coin_from_template( i, folder_name );
 
 		cv::Mat new_image;
@@ -239,7 +249,7 @@ int CoinIdentifier::identify(cv::Mat image) {
 	}
 
 	if(match_counter == 0) {
-		cout << "No matches found for coin!" << endl;
+		//cout << "No matches found for coin!" << endl;
 		return -1;
 	}
 
@@ -338,26 +348,42 @@ cv::Mat CoinIdentifier::load_coin_from_template( int n, std::string folder_name)
 		return image;
 }
 
-void CoinIdentifier::draw_coins(cv::Mat image, cv::Mat &output, cv::vector<cv::Vec3f> coin_positions, cv::Vector<int> hyp_list) {
+void CoinIdentifier::draw_coins(cv::Mat image, cv::Mat &output, cv::vector<cv::Vec3f> coin_positions, cv::Vector<int> hyp_list_l) {
 	image.copyTo(output);
 
+	cv::Scalar color_green(0, 255, 0);
+	cv::Scalar color_red(0, 0, 255);
+
 	for ( int i = 0; i < coin_positions.size(); i++) {
+		if (coin_positions[i][2] == 0)
+			continue;
+
 		int x = coin_positions[i][0];
 		int y = coin_positions[i][1];
 		int radius = coin_positions[i][2];
 
-		cv::circle(output, cv::Point(x, y), radius, cv::Scalar(0, 255, 0), 3);
+		if (hyp_list_l[i] == -1) {
+			cv::circle(output, cv::Point(x, y), radius, color_red, 3);
+			continue;
+		}
+		else {
+			cv::circle(output, cv::Point(x, y), radius, color_green, 3);
+		}
 
-		ostringstream ss;
-		ss << get_coin_val(hyp_list[i]);
-		string n = ss.str();
+		cout << "V: " << hyp_list_l[i] << endl;
+		
+		if(hyp_list_l[i] >-1 && hyp_list_l[i] < 5){
+			ostringstream ss;
+			ss << get_coin_val(hyp_list_l[i]);
+			string n = ss.str();
 
-		cv::Point text_pos(coin_positions[i][0] - 33,coin_positions[i][1] + 40);
+			cv::Point text_pos(coin_positions[i][0] - 33,coin_positions[i][1] + 40);
 
-		cv::putText(output, n, text_pos + cv::Point(1, - 1), CV_FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar(0, 0, 0), 2);
-		cv::putText(output, n, text_pos, CV_FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
+			cv::putText(output, n, text_pos + cv::Point(1, - 1), CV_FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar(0, 0, 0), 2);
+			cv::putText(output, n, text_pos, CV_FONT_HERSHEY_SCRIPT_SIMPLEX, 1, cv::Scalar(0, 255, 0), 2);
 
-		ss.str("");
+			ss.str("");
+		}
 	}
 }
 
@@ -386,7 +412,38 @@ double CoinIdentifier::get_coin_val(int n) {
 	int euro = stoi(name.substr(0, 1));
 	int cent = stoi(name.substr(2, 2));
 
-	cout << filelist[n] << endl;
-	cout << name.substr(0, 1) << " euros and " << name.substr(2, 2) << " cents." << endl;
+	//cout << filelist[n] << endl;
+	//cout << name.substr(0, 1) << " euros and " << name.substr(2, 2) << " cents." << endl;
 	return euro + cent/(double)100;
+}
+
+bool CoinIdentifier::getTemplateClass(int index) {
+	// For reference
+	// Class : currency
+	// 0	 : 1 cent
+	// 1	 : 2 cent
+	// 2	 : 5 cent
+	// 1	 : 10 cent
+	// 2	 : 20 cent
+	// 3	 : 50 cent
+	// 3	 : 1 euro
+	// 4	 : 2 euro
+	
+	double coin_val = get_coin_val(index);
+	int result_class = -1;
+
+	if (coin_val == 0.01)
+		result_class = 0;
+	else if (coin_val == 0.02 || coin_val == 0.10)
+		result_class = 1;
+	else if (coin_val == 0.05 || coin_val == 0.20)
+		result_class = 2;
+	else if (coin_val == 0.5 || coin_val == 1.0 )
+		result_class = 3;
+	else if (coin_val == 2.0)
+		result_class = 4;
+	else // Invalid number
+		result_class = -1;
+
+	return result_class;
 }
