@@ -40,6 +40,7 @@ cv::Mat CoinDetector::calibration_result(){
 		cv::circle(temp, center, radius, cv::Scalar(255, 255, 255), 2, 8, 0);
 		
 		rescale_ratio = radius / rad_samples[3];
+		std::cout << rescale_ratio << std::endl;
 	}
 
 	return temp;
@@ -56,7 +57,7 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 	cv::GaussianBlur(output_image, output_image, cv::Size(3, 3), 2, 2);
 	cv::dilate(output_image, output_image, cv::KERNEL_GENERAL);
 	//Alternate to canny, more robust
-	//cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 15, 15);
+	//cv::adaptiveThreshold(output_image, output_image, max, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY_INV, 7, 7);
 	cv::Canny(output_image, output_image, 75, 255, 3);
 	
 	//cv::threshold(output_image, output_image, 75, 255, CV_THRESH_BINARY);
@@ -74,7 +75,7 @@ void CoinDetector::preprocess(cv::Mat image, cv::Mat &output_image){
 void CoinDetector::find_circles(cv::Mat image, cv::Mat &output_image){
 	output_image.create(image.size(), CV_8UC3);
 	
-	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 2.0, 40, 200, 130, 10, 70);
+	cv::HoughCircles(image, coin_positions, CV_HOUGH_GRADIENT, 2.0, 40, 200, 130, 10 * rescale_ratio, 70 * rescale_ratio);
 
 	if (debug){
 		image.copyTo(output_image);
@@ -100,7 +101,7 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 	coin_classes.clear();
 
 	for (int i = 0; i < coin_positions.size(); i++) {
-		float rad_new = coin_positions[i][2] * ratio;// + 28 ;
+		float rad_new = coin_positions[i][2] + 28 ;
 		int x = coin_positions[i][0] - rad_new;
 		int y = coin_positions[i][1] - rad_new;
 
@@ -116,6 +117,8 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 
 		cv::Mat temp = image(cvRect(x, y, width, height));
 
+		output_coin_images.push_back(temp);
+
 		if (debug) {
 			//Initializing environment
 			cvNamedWindow("Before Isolation");
@@ -127,78 +130,80 @@ void CoinDetector::isolate_coins(cv::Mat image, cv::vector<cv::Mat> &output_coin
 		}
 
 
-		cv::vector<cv::Vec3f> circles;
+	//	cv::vector<cv::Vec3f> circles;
 
-		cv::Mat temp2;
-		preprocess( temp, temp2 );
+	//	cv::Mat temp2;
+	//	preprocess( temp, temp2 );
 
 
-		bool found_coin = false;
+	//	bool found_coin = false;
 
-		for (int j = rad_samples.size() - 1; j >= 0; j--) {
-			double rad = rad_samples[j];
-			cv::HoughCircles(temp2, circles, CV_HOUGH_GRADIENT, 2.0, 400, 200, 130, rad - 2, rad + 10);
-			if ( circles.size() > 0 ){
-				float rad_new2 = circles[0][2];
-				int x2 = circles[0][0] - rad_new2;
-				int y2 = circles[0][1] - rad_new2;
+	//	for (int j = rad_samples.size() - 1; j >= 0; j--) {
+	//		double rad = rad_samples[j] * rescale_ratio;
+	//		cv::HoughCircles(temp2, circles, CV_HOUGH_GRADIENT, 2.0, 200, 200, 130, rad - 2, rad + 8);
+	//		if ( circles.size() > 0 ){
+	//			float rad_new2 = circles[0][2];
+	//			int x2 = circles[0][0] - rad_new2;
+	//			int y2 = circles[0][1] - rad_new2;
 
-				//Make sure ROI never goes outside image boundaries
-				int w_max2 = (x2 > 0) ? rad_new2 : circles[0][0];
-				w_max2 = (circles[0][0] + rad_new2 < temp.cols) ? w_max2 : temp.cols - circles[0][0];
+	//			//Make sure ROI never goes outside image boundaries
+	//			int w_max2 = (x2 > 0) ? rad_new2 : circles[0][0];
+	//			w_max2 = (circles[0][0] + rad_new2 < temp.cols) ? w_max2 : temp.cols - circles[0][0];
 
-				int h_max2 = (y2 > 0) ? rad_new2 : circles[0][1];
-				h_max2 = (circles[0][1] + rad_new2 < temp.rows) ? h_max2 : temp.rows - circles[0][1];
+	//			int h_max2 = (y2 > 0) ? rad_new2 : circles[0][1];
+	//			h_max2 = (circles[0][1] + rad_new2 < temp.rows) ? h_max2 : temp.rows - circles[0][1];
 
-				int width2 = 2 * w_max2;
-				int height2 = 2 * h_max2;
+	//			int width2 = 2 * w_max2;
+	//			int height2 = 2 * h_max2;
 
-				cv::Mat temp_new = temp(cvRect(x2, y2, width2, height2));
-				
-				output_coin_images.push_back(temp_new);
-				coin_classes.push_back(j);
+	//			cv::Mat temp_new = temp(cvRect(x2, y2, width2, height2));
+	//			
+	//			output_coin_images.push_back(temp_new);
+	//			coin_classes.push_back(j);
 
-				found_coin = true;
-				break;
-			}
-		}
+	//			//std::cout << "J" << j << std::endl;
 
-		if ( !found_coin ) {
-			coin_classes.push_back(-1);
-		}
+	//			found_coin = true;
+	//			break;
+	//		}
+	//	}
 
-		else if (debug) {
-			//Initializing environment
-			cvNamedWindow("Isolated");
+	//	if ( !found_coin ) {
+	//		coin_classes.push_back(-1);
+	//	}
 
-			for (int k = 0; k < coin_positions.size(); k++) {
-				cv::Point center(cvRound(circles[k][0]), cvRound(circles[k][1]));
-				int radius = cvRound(circles[k][2]);
+	//	else if (debug) {
+	//		//Initializing environment
+	//		cvNamedWindow("Isolated");
 
-				// Can we draw the circle on the image or does it go out of frame
-				if ( (circles[k][0] - radius < 0 || circles[k][0] + radius > temp.cols) ||
-					(circles[k][1] - radius < 0 || circles[k][1] + radius > temp.rows)) {
-						break;
-				}
+	//		for (int k = 0; k < coin_positions.size(); k++) {
+	//			cv::Point center(cvRound(circles[k][0]), cvRound(circles[k][1]));
+	//			int radius = cvRound(circles[k][2]);
 
-				cv::circle(temp2, center, radius, cv::Scalar(255, 255, 255), 2, 8, 0);
-			}
-			
-			//Output
-			cv::imshow("Isolated", temp2);
-			cv::waitKey(0);
-			cvDestroyAllWindows();
-		}
+	//			// Can we draw the circle on the image or does it go out of frame
+	//			if ( (circles[k][0] - radius < 0 || circles[k][0] + radius > temp.cols) ||
+	//				(circles[k][1] - radius < 0 || circles[k][1] + radius > temp.rows)) {
+	//					break;
+	//			}
+
+	//			cv::circle(temp2, center, radius, cv::Scalar(255, 255, 255), 2, 8, 0);
+	//		}
+	//		
+	//		//Output
+	//		cv::imshow("Isolated", temp2);
+	//		cv::waitKey(0);
+	//		cvDestroyAllWindows();
+	//	}
 	}
 
-	if (debug){
-			for (int i = 0; i < output_coin_images.size(); i++) {
-				cvNamedWindow("Isolated Final");
-				cv::imshow("Isolated Final", output_coin_images[i]);
-				cv::waitKey(0);
-				cvDestroyAllWindows();
-			}
-	}
+	//if (debug){
+	//		for (int i = 0; i < output_coin_images.size(); i++) {
+	//			cvNamedWindow("Isolated Final");
+	//			cv::imshow("Isolated Final", output_coin_images[i]);
+	//			cv::waitKey(0);
+	//			cvDestroyAllWindows();
+	//		}
+	//}
 }
 
 //Public functions
@@ -226,8 +231,8 @@ CoinDetector::CoinDetector(int debug_mode, float scale_error, float calibration_
 
 
 	rad_samples.push_back( 40.0 ); // 1 cent
-	rad_samples.push_back( 47.0 ); // 2 cent and 10 cent
-	rad_samples.push_back( 52.0 ); // 5 cent and 20 cent
+	rad_samples.push_back( 48.0 ); // 2 cent and 10 cent
+	rad_samples.push_back( 53.5 ); // 5 cent and 20 cent
 	rad_samples.push_back( 58.0 ); // 50 cent and 1 euro
 	rad_samples.push_back( 63.0 ); // 2 euro
 

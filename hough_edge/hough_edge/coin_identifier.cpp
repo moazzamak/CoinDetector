@@ -123,15 +123,7 @@ void CoinIdentifier::identify_coins(cv::vector<cv::Mat> coins, cv::vector<int> c
 
 	for(int i = 0; i < coins.size(); i++) {
 		int coin_hypothesis = identify(coins[i], coin_class_groups[i]);
-		
-		//if(coin_hypothesis == -1)
-		//	coin_hypothesis = 0;
-		
-		if (coin_hypothesis > 4 || coin_hypothesis < -1)
-			coin_hypothesis = -1;
 			
-
-		cout << "H: " << coin_hypothesis << endl;
 		hyp_list.push_back(coin_hypothesis);
 
 		
@@ -156,7 +148,7 @@ int CoinIdentifier::identify(cv::Mat image, int coin_class_group) {
 	CoinIdentifier::preprocess(image, image);
 	
 	convert_to_mask(image, image);
-		
+
 	std::string folder_name = "features";
 
 	int best_match = -1;
@@ -172,7 +164,7 @@ int CoinIdentifier::identify(cv::Mat image, int coin_class_group) {
 
 	//Matching coin contender with templates
 	for (int i = 0; i < filelist.size(); i++) {
-		int template_group = getTemplateClass(i);
+		//int template_group = getTemplateClass(i);
 		//if (coin_class_group != template_group || coin_class_group == -1){
 		//	continue;
 		//}
@@ -197,7 +189,7 @@ int CoinIdentifier::identify(cv::Mat image, int coin_class_group) {
 		cv::Mat local_offset_image;
 			
 		//If the gray value lines match
-		if (out_gray_cum[0] < 0.2){
+		if (out_gray_cum[0] < 0.1){
 			match_counter++;
 
 			for (int j = 0; j < new_image.cols; j++) {
@@ -268,7 +260,6 @@ int CoinIdentifier::identify(cv::Mat image, int coin_class_group) {
 	}
 
 	return best_match;
-		return 1;
 }
 
 void CoinIdentifier::train() {
@@ -362,19 +353,20 @@ void CoinIdentifier::draw_coins(cv::Mat image, cv::Mat &output, cv::vector<cv::V
 		int y = coin_positions[i][1];
 		int radius = coin_positions[i][2];
 
-		if (hyp_list_l[i] == -1) {
+		if (hyp_list[i] == -1) {
 			cv::circle(output, cv::Point(x, y), radius, color_red, 3);
 			continue;
 		}
 		else {
 			cv::circle(output, cv::Point(x, y), radius, color_green, 3);
 		}
-
-		cout << "V: " << hyp_list_l[i] << endl;
 		
-		if(hyp_list_l[i] >-1 && hyp_list_l[i] < 5){
+
+		//cout << hyp_list[i] << endl;
+
+		if(hyp_list[i] != -1 && hyp_list[i] < filelist.size()){
 			ostringstream ss;
-			ss << get_coin_val(hyp_list_l[i]);
+			ss << get_coin_val(hyp_list[i]);
 			string n = ss.str();
 
 			cv::Point text_pos(coin_positions[i][0] - 33,coin_positions[i][1] + 40);

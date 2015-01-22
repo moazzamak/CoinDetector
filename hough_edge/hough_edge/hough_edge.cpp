@@ -17,27 +17,29 @@ using namespace cv;
 int main() {
 	//Initializing objects and variables
 	string isolated_output_folder = "isolated_images";
-	cv::Mat frame, temp_frame, temp_coin;
+	cv::Mat frame, frame_buf, temp_frame, temp_coin;
 
 	std::queue<cv::Mat> frame_buffer;
 	int frame_buffer_length = 5;
 
 	//Initializing ImageStream class
 	//this handles images saved on file as an input stream
-	ImageStream cap("test_data", "image_", ".jpg", 250);
+	//ImageStream cap("test_data_2", "image_", ".jpg", 200);
 
 	////Or alternately open webcam
-	//cv::VideoCapture cap(0);
+	cv::VideoCapture cap(0);
 
-	//if(!cap.isOpened()) // check if we succeeded
-	//	return -1;
+	if(!cap.isOpened()) // check if we succeeded
+		return -1;
 
 	CoinDetector cd(DEBUG);
-	CoinIdentifier ci(DEBUG, 3);
+	CoinIdentifier ci(DEBUG);
 
 	ci.train();
 
-	cap >> frame;
+	cap >> frame_buf;
+
+	frame = frame_buf.clone();
 
 	cd.calibrate(frame);
 	cout << "Done calibration" << endl;
@@ -52,7 +54,9 @@ int main() {
 
 	while (cv::waitKey(100) != 27) {
 		////Loading resources
-		cap >> frame;
+		cap >> frame_buf;
+
+		frame = frame_buf.clone();
 
 		if (frame.empty()) {
 			cout << "Error: Failed to load stream! "  << endl;
